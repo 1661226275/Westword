@@ -163,14 +163,4 @@ Westword/
 
 该项目基于MIT许可证开源，详情请参阅 [LICENSE](LICENSE) 文件。
 
-<!-- links -->
-[contributors-shield]: https://img.shields.io/github/contributors/1661226275/Westword.svg?style=flat-square
-[contributors-url]: https://github.com/1661226275/Westword/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/1661226275/Westword.svg?style=flat-square
-[forks-url]: https://github.com/1661226275/Westword/network/members
-[stars-shield]: https://img.shields.io/github/stars/1661226275/Westword.svg?style=flat-square
-[stars-url]: https://github.com/1661226275/Westword/stargazers
-[issues-shield]: https://img.shields.io/github/issues/1661226275/Westword.svg?style=flat-square
-[issues-url]: https://github.com/1661226275/Westword/issues
-[license-shield]: https://img.shields.io/github/license/1661226275/Westword.svg?style=flat-square
-[license-url]: https://github.com/1661226275/Westword/blob/master/LICENSE
+
