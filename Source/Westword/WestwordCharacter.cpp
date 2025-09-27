@@ -9,6 +9,7 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Westword.h"
+#include "Kismet/GameplayStatics.h"
 
 AWestwordCharacter::AWestwordCharacter()
 {
@@ -63,6 +64,29 @@ void AWestwordCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	else
 	{
 		UE_LOG(LogWestword, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
+}
+
+void AWestwordCharacter::OpenLobby()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel("/Game/Maps/Lobby?listen");
+	}
+}
+
+void AWestwordCharacter::CallOpenLevel(const FString& Address)
+{
+	UGameplayStatics::OpenLevel(this, FName(*Address));
+}
+
+void AWestwordCharacter::CallClientTravel(const FString& Address)
+{
+	APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
+	if (PlayerController)
+	{
+		PlayerController->ClientTravel(Address, TRAVEL_Absolute);
 	}
 }
 
