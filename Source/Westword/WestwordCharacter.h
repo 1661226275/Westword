@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "WestwordCharacter.generated.h"
 
 class UInputComponent;
@@ -90,14 +91,29 @@ public:
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+
+public:
+	//Point to the online session interface
+	IOnlineSessionPtr OnlineSessionInterface;
+
+
+protected:
 	UFUNCTION(BlueprintCallable)
-	void OpenLobby();
+	void CreateGameSession();
 
 	UFUNCTION(BlueprintCallable)
-	void CallOpenLevel(const FString& Address);
+	void JoinGameSession();
 
-	UFUNCTION(BlueprintCallable)
-	void CallClientTravel(const FString& Address);
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 
+	void OnFindSessionsComplete(bool bWasSuccessful);
+
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
+private:
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };
 
