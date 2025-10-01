@@ -58,10 +58,10 @@ AWestwordCharacter::AWestwordCharacter():
 	if (OnlineSubsystem)
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("Found Online Subsystem: %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
-		}
+		}*/
 	}
 }
 
@@ -133,10 +133,10 @@ void AWestwordCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuc
 {
 	if (bWasSuccessful)
 	{
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("Session created successfully: %s"), *SessionName.ToString()));
-		}
+		}*/
 		UWorld* World = GetWorld();
 		if (World)
 		{
@@ -145,10 +145,10 @@ void AWestwordCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuc
 	}
 	else
 	{
-		if (GEngine)
+		/*if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, TEXT("Failed to create session."));
-		}
+		}*/
 	}
 }
 
@@ -166,19 +166,19 @@ void AWestwordCharacter::OnFindSessionsComplete(bool bWasSuccessful)
 		Result.Session.SessionSettings.Get(FName("MATCH_TYPE"), MatchType);
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(
+			/*GEngine->AddOnScreenDebugMessage(
 				-1, 
 				15.f, 
 				FColor::Cyan, 
 				FString::Printf(TEXT("Session ID: %s, User: %s"), *ID, *User)
-			);
+			);*/
 		}
 		if (MatchType == FString("FreeForAll"))
 		{
-			if(GEngine)
+			/*if(GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("Joining Match type %s"), *MatchType));
-			}
+			}*/
 			OnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 			Result.Session.SessionSettings.bUsesPresence = true;
@@ -196,7 +196,7 @@ void AWestwordCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 	}
 	FString Address;
 	OnlineSessionInterface->GetResolvedConnectString(SessionName, Address);
-	if (GEngine)
+	/*if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(
 			-1,
@@ -204,7 +204,7 @@ void AWestwordCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 			FColor::Yellow,
 			FString::Printf(TEXT("Session Address: %s"), *Address)
 		);
-	}
+	}*/
 	APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
 	if(PlayerController && !Address.IsEmpty())
 	{
