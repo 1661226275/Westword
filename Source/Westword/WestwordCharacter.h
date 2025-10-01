@@ -49,6 +49,8 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
+
+
 	
 public:
 	AWestwordCharacter();
