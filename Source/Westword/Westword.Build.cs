@@ -26,13 +26,7 @@ public class Westword : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
-			"Westword",
-			"Westword/Variant_Horror",
-			"Westword/Variant_Horror/UI",
-			"Westword/Variant_Shooter",
-			"Westword/Variant_Shooter/AI",
-			"Westword/Variant_Shooter/UI",
-			"Westword/Variant_Shooter/Weapons"
+			"Westword"
 		});
 
 		// Uncomment if you are using Slate UI
