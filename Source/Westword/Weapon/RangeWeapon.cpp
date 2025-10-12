@@ -2,6 +2,8 @@
 #pragma once
 #include "Weapon/RangeWeapon.h"
 #include "Character/CowBoyCharacter.h"
+#include "Engine/StaticMeshSocket.h"
+#include "Projectile.h"
 void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 {
 	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(GetOwner());
@@ -12,6 +14,29 @@ void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 		FName SectionName;
 		SectionName = bIsAiming ? FName("RifleAim") : FName("RifleHip");
 		AnimInstance->Montage_JumpToSection(SectionName, FireMontage);
+	}
+}
+
+void ARangeWeapon::Fire(const FVector& HitTarget)
+{
+	if (!HasAuthority()) return;
+	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
+	if (ProjectileClass == nullptr)return;
+	const UStaticMeshSocket* MuzzleSocket = GetWeaponMesh()->GetSocketByName("FireSocket");
+	if (MuzzleSocket)
+	{
+		FTransform SocketTransform;
+		MuzzleSocket->GetSocketTransform(SocketTransform,GetWeaponMesh());
+		FVector ToTarget = HitTarget - SocketTransform.GetLocation();
+		FRotator TargetRotation = ToTarget.Rotation();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = InstigatorPawn;
+		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No MuzzleSocket")));
 	}
 }
 

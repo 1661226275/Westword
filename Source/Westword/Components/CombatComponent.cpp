@@ -5,12 +5,14 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/CowBoyCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 }
 
@@ -25,14 +27,16 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::FireBottonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
-	ServerFire();
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
+	ServerFire(HitResult.ImpactPoint);
 	
 }
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	MultiCastFire();
+	MultiCastFire(TraceHitTarget);
 }
-void UCombatComponent::MultiCastFire_Implementation()
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	//开火条件判断：
 	//1.持有武器
@@ -52,11 +56,42 @@ void UCombatComponent::MultiCastFire_Implementation()
 			RangerWeapon->PlayFireMontage(false);
 		}
 		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
+		RangerWeapon->Fire(TraceHitTarget);
 	}
 
 }
 
 
+
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
+{
+	FVector2D ViewportSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+	FVector2D CrosshairLocation = FVector2D(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(GetWorld(), 0),
+		CrosshairLocation,
+		CrosshairWorldPosition,
+		CrosshairWorldDirection
+	);
+	if (bScreenToWorld)
+	{
+		FVector Start = CrosshairWorldPosition;
+		FVector End = Start + CrosshairWorldDirection * 50000.f;
+		bool TraceResult = GetWorld()->LineTraceSingleByChannel(
+			TraceHitResult,
+			Start,
+			End,
+			ECC_Visibility
+		);
+		
+	}
+}
 
 void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 {
@@ -86,6 +121,7 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 
 }
 

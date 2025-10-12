@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "Engine/Engine.h"
 
 
@@ -25,8 +26,9 @@ ACowBoyCharacter::ACowBoyCharacter()
 	ThirdViewCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	ThirdViewCamera->bUsePawnControlRotation = false;
 
-	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	Combat = NewObject<UCombatComponent>(this, TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
+	Combat->RegisterComponent();
 	WeaponSolts.Init(nullptr, 2);
 
 
@@ -102,6 +104,7 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 void ACowBoyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 	//Éú³ÉÎäÆ÷
 	if (HasAuthority() && WeaponClass)
 	{

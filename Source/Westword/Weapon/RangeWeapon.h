@@ -15,7 +15,8 @@ class WESTWORD_API ARangeWeapon : public AWeaponBase
 	GENERATED_BODY()
 
 private:
-	
+	UPROPERTY(EditAnyWhere)
+	TSubclassOf<class AProjectile> ProjectileClass;
 
 public:
 
@@ -28,7 +29,7 @@ public:
 	// ¿ª»ð
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void PlayFireMontage(bool bIsAiming);
-
+	void Fire(const FVector& HitTarget);
 	// »»µ¯
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void PlayReloadMontage();
