@@ -4,6 +4,7 @@
 #include "Character/CowBoyAnimInstance.h"
 #include "Character/CowBoyCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UCowBoyAnimInstance::NativeInitializeAnimation()
@@ -44,5 +45,26 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		CowBoyCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), RightHandIndexSocketTransform.GetLocation(), RightHandIndexSocketTransform.GetRotation().Rotator(), RightHandIndexLocation, RightHandIndexRotation);
 		RightHandIndexSocketTransform.SetLocation(RightHandIndexLocation);
 		RightHandIndexSocketTransform.SetRotation(RightHandIndexRotation.Quaternion());
+
+		//HitTargetg改变时重新计算旋转差异
+		if (!(LastHitTarget.Equals(CowBoyCharacter->GetHitTarget(), 0.01)))
+		{
+			FTransform RightHandTransform = CowBoyCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
+			FVector  RightHandLocation = RightHandTransform.GetLocation();
+			FTransform SpineTransform = CowBoyCharacter->GetMesh()->GetSocketTransform(FName("spine_01"), ERelativeTransformSpace::RTS_World);
+			FVector SpineLocation = SpineTransform.GetLocation();
+			// 计算两个方向向量
+			FVector CurrentArmDirection = SpineTransform.GetUnitAxis(EAxis::Y);
+			FVector TargetArmDirection = (CowBoyCharacter->GetHitTarget() - SpineLocation).GetSafeNormal();
+			// 计算旋转差异
+			FQuat RotationQuat = FQuat::FindBetweenNormals(CurrentArmDirection, TargetArmDirection);
+			ShootRotation = RotationQuat.Rotator();
+			LastHitTarget = CowBoyCharacter->GetHitTarget();
+		}
+		FTransform MuzzleTipTransform = CowBoyCharacter->GetWeapon(0)->GetWeaponMesh()->GetSocketTransform(FName("FireSocket"), ERelativeTransformSpace::RTS_World);
+		FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), CowBoyCharacter->GetHitTarget(), FColor::Orange);
+
 	}
 }

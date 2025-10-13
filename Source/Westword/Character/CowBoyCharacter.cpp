@@ -100,6 +100,12 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 	}
 }
 
+FVector ACowBoyCharacter::GetHitTarget() const
+{
+	if(Combat == nullptr) return FVector();
+	return Combat->HitTarget;
+}
+
 // Called when the game starts or when spawned
 void ACowBoyCharacter::BeginPlay()
 {

@@ -18,6 +18,15 @@ private:
 	UPROPERTY(EditAnyWhere)
 	TSubclassOf<class AProjectile> ProjectileClass;
 
+	/*
+	* Zoomed FOV while aiming
+	*/
+	UPROPERTY(EditAnywhere)
+	float ZoomFov = 30.f;
+
+	UPROPERTY(EditAnywhere)
+	float ZoomInterSpeed = 20.f;
+
 public:
 
 	// ¿ª»ðÃÉÌ«Ææ
@@ -39,5 +48,22 @@ public:
 
 	//Ð¶ÏÂÎäÆ÷
 	virtual void PlayUnEquipMontage() override;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairsCenter;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairsLeft;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairsRight;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairsTop;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairsBottom;
+
+	float GetZoomedFov() const { return ZoomFov; }
 	
 };

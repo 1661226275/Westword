@@ -9,17 +9,17 @@
 #include "CombatComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class WESTWORD_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	friend class ACowBoyCharacter;
-	
+
 	void SetPlayerState(ECharacterState NewState);
 	UFUNCTION(Reliable, Server)
 	void ServerSetPlayerState(ECharacterState NewState);
@@ -32,25 +32,49 @@ protected:
 
 	bool bFireButtonPressed = false;
 
-	UFUNCTION(Server,Reliable)
+	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
-	UFUNCTION(NetMulticast,Reliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
+	void SetHUDCrosshairs(float DeltaTime);
 private:
 	class ACowBoyCharacter* Character;
 	UPROPERTY(Replicated)
 	class AWeaponBase* EquippedWeapon;
 
+	class ACowBoyPlayerController* Controller;
+	class ACowBoyHUD* HUD;
 
-public:	
+	/*
+	CrossHairs and HUD
+	*/
+	float CrosshairVelocityFactor;
+
+	float CrosshairInAirFactor;
+
+	FVector HitTarget;
+
+	/*
+	Aiming and Fov
+	*/
+	float DefaultFOV;
+	UPROPERTY(EditAnywhere,Category = "Combat")
+	float ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ZoomInterSpeed = 20.f;
+
+	void InterFov(float DeltaTime);
+
+public:
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
-		
+
 };

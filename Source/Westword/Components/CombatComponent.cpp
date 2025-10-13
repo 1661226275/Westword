@@ -4,9 +4,13 @@
 #include "Components/CombatComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/CowBoyCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "Westword/PlayerController/CowBoyPlayerController.h"
+#include "Westword/HUD/CowBoyHUD.h"
+
 
 
 // Sets default values for this component's properties
@@ -21,7 +25,71 @@ UCombatComponent::UCombatComponent()
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+}
+
+// Called every frame
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Character && Character->IsLocallyControlled())
+	{
+		SetHUDCrosshairs(DeltaTime);
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		HitTarget = HitResult.ImpactPoint;
+	}
 	
+}
+void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
+{
+	if (Character == nullptr || Character->GetController() == nullptr) return;
+	Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+	if (Controller)
+	{
+		HUD = HUD == nullptr ? Cast<ACowBoyHUD>(Controller->GetHUD()) : HUD;
+		if (HUD)
+		{
+			FHUDPackage HUDPackage;
+			if (EquippedWeapon)
+			{
+				ARangeWeapon* CurrentWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+				HUDPackage.CrosshairsCenter = CurrentWeapon->CrosshairsCenter;
+				HUDPackage.CrosshairsLeft = CurrentWeapon->CrosshairsLeft;
+				HUDPackage.CrosshairsRight = CurrentWeapon->CrosshairsRight;
+				HUDPackage.CrosshairsTop = CurrentWeapon->CrosshairsTop;
+				HUDPackage.CrosshairsBottom = CurrentWeapon->CrosshairsBottom;
+			}
+			else
+			{
+				HUDPackage.CrosshairsCenter = nullptr;
+				HUDPackage.CrosshairsLeft = nullptr;
+				HUDPackage.CrosshairsRight = nullptr;
+				HUDPackage.CrosshairsTop = nullptr;
+				HUDPackage.CrosshairsBottom = nullptr;
+			}
+			//¼ÆËã×¼ÐÇÀ©É¢
+			//[0-600] -> [0-1]
+			FVector2D WalkSpeedRange(0.f, Cast<UCharacterMovementComponent>(Character->GetMovementComponent())->MaxWalkSpeed);
+			FVector2D VelocityMultiplierRange(0.f, 1.f);
+			FVector Velocity = Character->GetVelocity();
+			Velocity.Z = 0.f;
+			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
+
+			if (Character->GetCharacterMovement()->IsFalling())
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+			}
+			else
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
+			}
+
+			HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
+			HUD->SetHUDPackage(HUDPackage);
+		}
+	}
 }
 
 void UCombatComponent::FireBottonPressed(bool bPressed)
@@ -30,7 +98,7 @@ void UCombatComponent::FireBottonPressed(bool bPressed)
 	FHitResult HitResult;
 	TraceUnderCrosshairs(HitResult);
 	ServerFire(HitResult.ImpactPoint);
-	
+
 }
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
@@ -89,7 +157,26 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			End,
 			ECC_Visibility
 		);
-		
+		if (!TraceResult)
+		{
+			TraceHitResult.ImpactPoint = FVector_NetQuantize(End);
+		}
+
+	}
+}
+
+
+
+void UCombatComponent::InterFov(float DeltaTime)
+{
+	if (EquippedWeapon == nullptr) return;
+	if (Character->IsAiming())
+	{
+
+	}
+	else
+	{
+
 	}
 }
 
@@ -112,18 +199,10 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 		Character->SetWeaponType(EquippedWeapon->WeaponType);
 	}
 	EquippedWeapon->SetOwner(Character);
-	
-}
-
-
-
-// Called every frame
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
 
 }
+
+
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -136,7 +215,7 @@ void UCombatComponent::SetPlayerState(ECharacterState NewState)
 {
 	Player_State = NewState;
 	ServerSetPlayerState(NewState);
-	
+
 }
 
 void UCombatComponent::ServerSetPlayerState_Implementation(ECharacterState NewState)

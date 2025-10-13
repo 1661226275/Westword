@@ -50,7 +50,7 @@ public:
 
 	float GetAOPitch() const { return AO_Pitch; }
 
-	
+	FVector GetHitTarget()const;
 
 protected:
 	// Called when the game starts or when spawned

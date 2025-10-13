@@ -46,5 +46,9 @@ private:
 	float AO_Pitch;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FTransform RightHandIndexSocketTransform;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	FRotator ShootRotation;
+
+	FVector LastHitTarget{0,0,0};
 };
