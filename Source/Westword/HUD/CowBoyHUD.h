@@ -18,6 +18,7 @@ public:
 	class UTexture2D* CrosshairsTop;
 	class UTexture2D* CrosshairsBottom;
 	float CrosshairSpread;
+	FLinearColor CrosshairColor;
 };
 
 /**
@@ -31,9 +32,18 @@ class WESTWORD_API ACowBoyHUD : public AHUD
 public:
 	virtual void DrawHUD() override;
 
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<UUserWidget> CharacterOverlayClass;
+
+	class UCharacterOverlay* CharacterOverlay;
+
+protected:
+	virtual void BeginPlay() override;
+	void AddCharacterOverlay();
+
 private:
 	FHUDPackage HUDPackage;
-	void DrawCrosshairs(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread);
+	void DrawCrosshairs(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread,FLinearColor CrosshairColor);
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	float CrosshairSpreadMax = 16.f;
 public:

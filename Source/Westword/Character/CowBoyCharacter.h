@@ -6,11 +6,12 @@
 #include "DataType/EnumData.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
+#include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/CombatComponent.h"
 #include "CowBoyCharacter.generated.h"
 
-UCLASS()
-class WESTWORD_API ACowBoyCharacter : public ACharacter
+UCLASS(Blueprintable, BlueprintType)
+class WESTWORD_API ACowBoyCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
 	GENERATED_BODY()
 
@@ -49,8 +50,6 @@ public:
 	void AimOffset(float DeltaTime);
 
 	float GetAOPitch() const { return AO_Pitch; }
-
-	FVector GetHitTarget()const;
 
 
 protected:
@@ -94,6 +93,12 @@ protected:
 	void FireBottonPressed();
 	void FireBottonReleased();
 
+	void PlayHitReactMontage();
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	void UpdateHUDHealth();
 private:
 	UPROPERTY(VisibleAnyWhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
@@ -103,10 +108,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = Animation)
 	class UAnimMontage* SlideMontage;
 
-	//武器槽,2个武器槽，近战和远程
-	UPROPERTY( VisibleAnyWhere, Category = Weapon)
-	TArray<AWeaponBase*>WeaponSolts;
+	UPROPERTY(EditAnywhere, Category = Animation)
+	class UAnimMontage* HitReactMontage;
 
+	
+
+	//武器槽,2个武器槽，近战和远程
+	UPROPERTY(Replicated,VisibleAnyWhere, Category = Weapon)
+	TArray<AWeaponBase*>WeaponSolts;
 	UPROPERTY( EditAnywhere, Category = Weapon)
 	TSubclassOf<AWeaponBase> WeaponClass;
 
@@ -126,6 +135,24 @@ private:
 
 	float AO_Pitch;
 
+	void HideCharacterIfCharacterClose();
+	UPROPERTY(EditAnywhere, Category = Camera)
+	float CameraThreshold = 200.f;
+
+	/*
+	player Health
+	*/
+
+	UPROPERTY(EditAnywhere,Category = "Player State")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player State")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health(float LastHealth);
+
+	class ACowBoyPlayerController* CowBoyController;
 
 public:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")

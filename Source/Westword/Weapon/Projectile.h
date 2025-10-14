@@ -27,6 +27,8 @@ protected:
 		FVector NormalImpulse,
 		const FHitResult& Hit
 	);
+	UPROPERTY(EditAnywhere ,Category = "Projectile")
+	float Damage = 30;
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -46,7 +48,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* ImpactSound;
 
-
+	
 
 
 public:	

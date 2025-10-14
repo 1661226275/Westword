@@ -9,7 +9,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Westword/PlayerController/CowBoyPlayerController.h"
-#include "Westword/HUD/CowBoyHUD.h"
 #include "Camera/CameraComponent.h"
 
 
@@ -59,7 +58,6 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		HUD = HUD == nullptr ? Cast<ACowBoyHUD>(Controller->GetHUD()) : HUD;
 		if (HUD)
 		{
-			FHUDPackage HUDPackage;
 			if (EquippedWeapon)
 			{
 				ARangeWeapon* CurrentWeapon = Cast<ARangeWeapon>(EquippedWeapon);
@@ -93,8 +91,23 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			{
 				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 			}
+			if (Character->IsAiming())
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaTime, 30.f);
+			}
+			else
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+			}
 
-			HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 40.f);
+
+			HUDPackage.CrosshairSpread =
+				0.5f +
+				CrosshairVelocityFactor +
+				CrosshairInAirFactor -
+				CrosshairAimFactor +
+				CrosshairShootingFactor;
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}
@@ -106,6 +119,11 @@ void UCombatComponent::FireBottonPressed(bool bPressed)
 	FHitResult HitResult;
 	TraceUnderCrosshairs(HitResult);
 	ServerFire(HitResult.ImpactPoint);
+
+	if (EquippedWeapon)
+	{
+		CrosshairShootingFactor = 2.f;
+	}
 
 }
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
@@ -158,6 +176,13 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if (bScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPosition;
+
+		if (Character)
+		{
+			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+		}
+
 		FVector End = Start + CrosshairWorldDirection * 50000.f;
 		bool TraceResult = GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult,
@@ -169,7 +194,19 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		{
 			TraceHitResult.ImpactPoint = FVector_NetQuantize(End);
 		}
-
+		if (TraceHitResult.bBlockingHit)
+		{
+			//DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 16.f, 12, FColor::Red, false);
+		}
+		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+		{
+			
+			HUDPackage.CrosshairColor = FLinearColor::Red;
+		}
+		else
+		{
+			HUDPackage.CrosshairColor = FLinearColor::White;
+		}
 	}
 }
 

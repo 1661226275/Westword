@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
+#include "Westword/HUD/CowBoyHUD.h"
 #include "CombatComponent.generated.h"
 
 
@@ -56,7 +57,13 @@ private:
 
 	float CrosshairInAirFactor;
 
+	float CrosshairAimFactor;
+
+	float CrosshairShootingFactor;
+
 	FVector HitTarget;
+
+	FHUDPackage HUDPackage;
 
 	/*
 	Aiming and Fov
@@ -78,4 +85,5 @@ public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
 
+	FVector GetHitTarget() const {return HitTarget;}
 };

@@ -45,9 +45,8 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		CowBoyCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), RightHandIndexSocketTransform.GetLocation(), RightHandIndexSocketTransform.GetRotation().Rotator(), RightHandIndexLocation, RightHandIndexRotation);
 		RightHandIndexSocketTransform.SetLocation(RightHandIndexLocation);
 		RightHandIndexSocketTransform.SetRotation(RightHandIndexRotation.Quaternion());
-
 		//HitTargetg改变时重新计算旋转差异
-		if (!(LastHitTarget.Equals(CowBoyCharacter->GetHitTarget(), 0.01)))
+		if (!(LastHitTarget.Equals(CowBoyCharacter->GetCombatComponent()->GetHitTarget(), 0.01)))
 		{
 			FTransform RightHandTransform = CowBoyCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
 			FVector  RightHandLocation = RightHandTransform.GetLocation();
@@ -55,16 +54,18 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			FVector SpineLocation = SpineTransform.GetLocation();
 			// 计算两个方向向量
 			FVector CurrentArmDirection = SpineTransform.GetUnitAxis(EAxis::Y);
-			FVector TargetArmDirection = (CowBoyCharacter->GetHitTarget() - SpineLocation).GetSafeNormal();
+			FVector TargetArmDirection = (CowBoyCharacter->GetCombatComponent()->GetHitTarget() - SpineLocation).GetSafeNormal();
 			// 计算旋转差异
 			FQuat RotationQuat = FQuat::FindBetweenNormals(CurrentArmDirection, TargetArmDirection);
-			ShootRotation = RotationQuat.Rotator();
-			LastHitTarget = CowBoyCharacter->GetHitTarget();
+			TargetRotation = RotationQuat.Rotator();
+			LastHitTarget = CowBoyCharacter->GetCombatComponent()->GetHitTarget();
 		}
+		//插值计算
+		ShootRotation = UKismetMathLibrary::RInterpTo(ShootRotation, TargetRotation, DeltaSeconds, 15.f);
 		FTransform MuzzleTipTransform = CowBoyCharacter->GetWeapon(0)->GetWeaponMesh()->GetSocketTransform(FName("FireSocket"), ERelativeTransformSpace::RTS_World);
 		FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
 		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
-		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), CowBoyCharacter->GetHitTarget(), FColor::Orange);
+		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), CowBoyCharacter->GetCombatComponent()->GetHitTarget(), FColor::Orange);
 
 	}
 }

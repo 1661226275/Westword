@@ -1,21 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/CowBoyCharacter.h"
+#include "CowBoyCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "Engine/Engine.h"
+#include "Westword/Westword.h"
+#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
+#include "PlayerController/CowBoyPlayerController.h"
 
 
 // Sets default values
 ACowBoyCharacter::ACowBoyCharacter()
 {
- 
+
 	PrimaryActorTick.bCanEverTick = true;
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -26,11 +30,15 @@ ACowBoyCharacter::ACowBoyCharacter()
 	ThirdViewCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	ThirdViewCamera->bUsePawnControlRotation = false;
 
-	Combat = NewObject<UCombatComponent>(this, TEXT("CombatComponent"));
+	Combat = CreateDefaultSubobject<UCombatComponent>( TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
-	Combat->RegisterComponent();
-	WeaponSolts.Init(nullptr, 2);
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+
+	WeaponSolts.Init(nullptr, 2);
 
 
 
@@ -39,13 +47,17 @@ ACowBoyCharacter::ACowBoyCharacter()
 void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapWeapon,COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ACowBoyCharacter, WeaponSolts);
+	DOREPLIFETIME(ACowBoyCharacter, Health);
 }
+
 void ACowBoyCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	if(Combat)
+	if (Combat)
 	{
+		Combat->PrimaryComponentTick.bCanEverTick = true;
 		Combat->Character = this;
 	}
 }
@@ -64,7 +76,7 @@ void ACowBoyCharacter::SetOverLapWeapon(AWeaponBase* Weapon)
 		{
 			OverLapWeapon->SetPickUpWidgetVisibility(true);
 			//日志输出
-			if(GEngine)
+			if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SetPickUpWidgetVisibility"));
 			}
@@ -72,6 +84,7 @@ void ACowBoyCharacter::SetOverLapWeapon(AWeaponBase* Weapon)
 
 	}
 }
+
 
 
 
@@ -87,6 +100,42 @@ void ACowBoyCharacter::RepNotify_OverLapWeapon(AWeaponBase* LastWeapon)
 	}
 }
 
+void ACowBoyCharacter::HideCharacterIfCharacterClose()
+{
+	if (!IsLocallyControlled()) return;
+	if ((ThirdViewCamera->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee= false;
+
+		}
+	}
+}
+
+void ACowBoyCharacter::OnRep_Health(float LastHealth)
+{
+	PlayHitReactMontage();
+	UpdateHUDHealth();
+}
+
+void ACowBoyCharacter::UpdateHUDHealth()
+{
+	CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+	if (CowBoyController)
+	{
+		CowBoyController->SetHUDHealth(Health, MaxHealth);
+	}
+}
 
 void ACowBoyCharacter::AimOffset(float DeltaTime)
 {
@@ -100,17 +149,32 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 	}
 }
 
-FVector ACowBoyCharacter::GetHitTarget() const
+void ACowBoyCharacter::PlayHitReactMontage()
 {
-	if(Combat == nullptr) return FVector();
-	return Combat->HitTarget;
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName = FName("FromFront");
+		AnimInstance->Montage_JumpToSection(SectionName);
+		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_DeBuff);
+	}
 }
+
+void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	UpdateHUDHealth();
+	PlayHitReactMontage();
+}
+
+
 
 // Called when the game starts or when spawned
 void ACowBoyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
 	//生成武器
 	if (HasAuthority() && WeaponClass)
 	{
@@ -123,7 +187,7 @@ void ACowBoyCharacter::BeginPlay()
 
 	if (WeaponSolts[0])
 	{
-		if(GEngine)
+		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[0]->GetName()));
 		}
@@ -139,7 +203,12 @@ void ACowBoyCharacter::BeginPlay()
 			WeaponSolts[0]->SetWeaponState(EWeaponState::EWS_PickUp);
 		}
 	}
-	
+
+	UpdateHUDHealth();
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ACowBoyCharacter::ReceiveDamage);
+	}
 }
 
 
@@ -153,7 +222,7 @@ void ACowBoyCharacter::Tick(float DeltaTime)
 void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed,this, &ACowBoyCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACowBoyCharacter::Jump);
 	PlayerInputComponent->BindAction("Slide", IE_Pressed, this, &ACowBoyCharacter::Slide);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ACowBoyCharacter::Slide);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ACowBoyCharacter::Slide);
@@ -181,7 +250,7 @@ void ACowBoyCharacter::MoveForward(float Value)
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
 		AddMovementInput(Direction, Value);
 	}
-	
+
 }
 
 void ACowBoyCharacter::MoveRight(float Value)
@@ -213,7 +282,7 @@ void ACowBoyCharacter::Jump()
 		//更新蒙太奇播放状态
 		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
 	}
-	
+
 }
 
 void ACowBoyCharacter::Slide()
@@ -238,7 +307,7 @@ void ACowBoyCharacter::MultiCastSlide_Implementation()
 
 void ACowBoyCharacter::StartSprint()
 {
-	
+
 }
 
 void ACowBoyCharacter::EndSprint()
@@ -267,6 +336,7 @@ void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
 		//情况1
 		if (WeaponSolts[0] && WeaponType == EWeaponType::WeaponType_None)
 		{
+			
 			Combat->EquipWeapon(WeaponSolts[0]);
 			WeaponSolts[0]->PlayEquipMontage();
 		}
@@ -309,6 +379,4 @@ void ACowBoyCharacter::FireBottonReleased()
 		Combat->FireBottonPressed(false);
 	}
 }
-
-
 

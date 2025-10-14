@@ -47,6 +47,7 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FTransform RightHandIndexSocketTransform;
 
+	FRotator TargetRotation;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FRotator ShootRotation;
 
