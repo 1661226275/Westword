@@ -65,5 +65,6 @@ public:
 	class UTexture2D* CrosshairsBottom;
 
 	float GetZoomedFov() const { return ZoomFov; }
+	float GetZoomInterSpeed() const { return ZoomInterSpeed; }
 	
 };

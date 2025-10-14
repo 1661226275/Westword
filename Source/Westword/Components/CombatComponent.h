@@ -62,6 +62,7 @@ private:
 	Aiming and Fov
 	*/
 	float DefaultFOV;
+	float CurrentFOV;
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	float ZoomedFOV = 30.f;
 

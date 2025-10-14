@@ -52,6 +52,7 @@ public:
 
 	FVector GetHitTarget()const;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -134,7 +135,7 @@ public:
 	UPROPERTY( BlueprintReadWrite, Category = "PlayerState")
 	EWeaponType WeaponType = EWeaponType::WeaponType_None;
 
-
+	UCameraComponent* GetThirdViewCamera() const { return ThirdViewCamera; }
 
 	
 };

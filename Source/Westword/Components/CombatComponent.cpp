@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Westword/PlayerController/CowBoyPlayerController.h"
 #include "Westword/HUD/CowBoyHUD.h"
+#include "Camera/CameraComponent.h"
 
 
 
@@ -25,6 +26,11 @@ UCombatComponent::UCombatComponent()
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (Character->GetThirdViewCamera())
+	{
+		DefaultFOV = Character->GetThirdViewCamera()->FieldOfView;
+		CurrentFOV = DefaultFOV;
+	}
 
 }
 
@@ -36,6 +42,8 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (Character && Character->IsLocallyControlled())
 	{
 		SetHUDCrosshairs(DeltaTime);
+		InterFov(DeltaTime);
+
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
@@ -172,11 +180,19 @@ void UCombatComponent::InterFov(float DeltaTime)
 	if (EquippedWeapon == nullptr) return;
 	if (Character->IsAiming())
 	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, 
+			Cast<ARangeWeapon>(EquippedWeapon)->GetZoomedFov()
+			, DeltaTime, 
+			Cast<ARangeWeapon>(EquippedWeapon)->GetZoomInterSpeed());
 
 	}
 	else
 	{
-
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterSpeed);
+	}
+	if (Character->GetThirdViewCamera())
+	{
+		Character->GetThirdViewCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 
