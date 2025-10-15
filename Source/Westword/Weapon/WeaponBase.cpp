@@ -122,8 +122,8 @@ void AWeaponBase::SetWeaponState(EWeaponState NewState)
 		{
 			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		}
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->SetEnableGravity(true);
+		//WeaponMesh->SetSimulatePhysics(true);
+		//WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
