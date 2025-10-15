@@ -16,6 +16,9 @@ class WESTWORD_API ACowBoyPlayerController : public APlayerController
 
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDScore(float Score);
+	void SetHUDWeaponAmmo(int32 Ammo);
+	void OnPossess(APawn* InPawn) override;
 
 protected:
 	virtual void BeginPlay() override;

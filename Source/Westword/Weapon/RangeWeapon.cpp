@@ -4,6 +4,8 @@
 #include "Character/CowBoyCharacter.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Projectile.h"
+#include "Character/CowBoyCharacter.h"
+#include "PlayerController/CowBoyPlayerController.h"
 void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 {
 	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(GetOwner());
@@ -34,10 +36,7 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 		SpawnParams.Instigator = InstigatorPawn;
 		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No MuzzleSocket")));
-	}
+	SpendRound();
 }
 
 void ARangeWeapon::PlayReloadMontage()
@@ -76,4 +75,49 @@ void ARangeWeapon::PlayUnEquipMontage()
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("RangeWeapon Playing UnEquip Montage")));
 		}
 	}
+}
+
+void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ARangeWeapon, Ammo);
+}
+
+void ARangeWeapon::SetHUDAmmo()
+{
+	CowBoyOwnerCharacter = CowBoyOwnerCharacter == nullptr ? Cast<ACowBoyCharacter>(GetOwner()) : CowBoyOwnerCharacter;
+	if (CowBoyOwnerCharacter)
+	{
+		CowBoyOwnerController = CowBoyOwnerController == nullptr ? Cast<ACowBoyPlayerController>(CowBoyOwnerCharacter->GetController()) : CowBoyOwnerController;
+		if (CowBoyOwnerController)
+		{
+			CowBoyOwnerController->SetHUDWeaponAmmo(Ammo);
+		}
+	}
+}
+
+void ARangeWeapon::SpendRound()
+{
+	--Ammo;
+	SetHUDAmmo();
+}
+
+void ARangeWeapon::OnRep_Ammo()
+{
+	SetHUDAmmo();
+}
+
+void ARangeWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		CowBoyOwnerCharacter = nullptr;
+		CowBoyOwnerController = nullptr;
+	}
+	else
+	{
+		SetHUDAmmo();
+	}
+	
 }

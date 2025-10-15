@@ -2,6 +2,7 @@
 
 #include "Weapon/WeaponBase.h"
 #include "Character/CowBoyCharacter.h"
+#include "PlayerController/CowBoyPlayerController.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
@@ -81,7 +82,14 @@ void AWeaponBase::OnRep_WeaponState()
 	case EWeaponState::EWS_Equipped:
 	case EWeaponState::EWS_PickUp:
 		SetPickUpWidgetVisibility(false);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Drop:
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
@@ -105,9 +113,31 @@ void AWeaponBase::SetWeaponState(EWeaponState NewState)
 	case EWeaponState::EWS_PickUp:
 		SetPickUpWidgetVisibility(false);
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Drop:
+		if (HasAuthority())
+		{
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		}
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 	
+}
+
+void AWeaponBase::Dropped()
+{
+	SetWeaponState(EWeaponState::EWS_Drop);
+	SetOwner(nullptr);
+	SetPickUpWidgetVisibility(true);
+	CowBoyOwnerCharacter = nullptr;
+	CowBoyOwnerController = nullptr;
+
 }
 
 

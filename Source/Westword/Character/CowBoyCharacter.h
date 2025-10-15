@@ -51,6 +51,16 @@ public:
 
 	float GetAOPitch() const { return AO_Pitch; }
 
+	void Elim();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultCastElim();
+
+	//∏¥ªÓ«Î«Û
+	void RequestRespawn();
+	//∏¥ªÓ
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRespawn();
 
 protected:
 	// Called when the game starts or when spawned
@@ -99,6 +109,9 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	void UpdateHUDHealth();
+	//Poll for any relevant classes and initialize our HUD
+	void PollInit();
+
 private:
 	UPROPERTY(VisibleAnyWhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
@@ -110,6 +123,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Animation)
 	class UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditAnywhere, Category = Animation)
+	class UAnimMontage* DieMontage;
+
+	UPROPERTY(EditAnywhere, Category = Animation)
+	class UAnimMontage* RespawnMontage;
 
 	
 
@@ -154,6 +173,9 @@ private:
 
 	class ACowBoyPlayerController* CowBoyController;
 
+	bool bElimmed = false;
+	bool bShootHead = false;
+
 public:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	EPlayingMantoge PlayingMantogeState = EPlayingMantoge::PlayingMantoge_Blank;
@@ -162,9 +184,25 @@ public:
 	UPROPERTY( BlueprintReadWrite, Category = "PlayerState")
 	EWeaponType WeaponType = EWeaponType::WeaponType_None;
 
+	UPROPERTY(BlueprintReadWrite, Category = "PlayerState")
+	EDeathpose Deathpose;
+
+	UFUNCTION(BlueprintCallable)
+	void SetDeathPose(EDeathpose NewPose) { Deathpose = NewPose; }
+
 	UCameraComponent* GetThirdViewCamera() const { return ThirdViewCamera; }
 
-	
+	bool IsElimmed() const { return bElimmed; }
+	bool IsShootHead() const { return bShootHead; }
+
+	void PlayDieMontage();
+
+	void PlayDieShootHeadMontage();
+
+	float GetHealth() const { return Health; }
+	float GetMaxHealth() const { return MaxHealth; }
+
+	class ACowBoyPlayerState* CowBoyPlayerState;
 };
 
 

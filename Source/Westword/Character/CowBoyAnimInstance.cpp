@@ -29,11 +29,13 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Speed = Velocity.Size();
 	bIsInAir = CowBoyCharacter->GetMovementComponent()->IsFalling();
 	bIsAccelerating = CowBoyCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+	bElimmed = CowBoyCharacter->IsElimmed();
 	ForwardInput = CowBoyCharacter->GetForwardInput();
 	RightInput = CowBoyCharacter->GetRightInput();
 	CowBoyCharacter->SetForWardInput(0);
 	CowBoyCharacter->SetRightInput(0);
 	bIsAming = CowBoyCharacter->IsAiming();
+	bIsDead = CowBoyCharacter->GetCombatComponent()->IsAlive();
 	Direction = CalculateDirection(Velocity, CowBoyCharacter->GetActorRotation());
 	AO_Pitch = CowBoyCharacter->GetAOPitch();
 

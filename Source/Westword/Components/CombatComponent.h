@@ -86,4 +86,8 @@ public:
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
 
 	FVector GetHitTarget() const {return HitTarget;}
+
+	bool CanFire();
+
+	bool IsAlive() const { return Player_State == ECharacterState::CharacterState_Death; }
 };

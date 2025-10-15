@@ -13,6 +13,19 @@ enum class EWeaponState : uint8
 	EWS_Drop,
 	EWS_MAX
 };
+
+UENUM(BlueprintType)
+enum class EDeathpose : uint8
+{
+	EDP_DieRight = 0,
+	EDP_DieLeft,
+	EDP_DieBack1,
+	EDP_DieBack2,
+	EDP_DieShootHeadBack,
+	EDP_DieShootHeadFront,
+	EDP_DieShootHeadRight1,
+	EDP_DieShootHeadRight2
+};
 //定义三个枚举变量表示蒙太奇播放状态,当前角色状态,武器装备状态
 UENUM(BlueprintType)
 enum class EPlayingMantoge : uint8

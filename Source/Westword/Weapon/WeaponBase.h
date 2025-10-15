@@ -44,6 +44,11 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
+	UPROPERTY()
+	class ACowBoyCharacter* CowBoyOwnerCharacter;
+	UPROPERTY()
+	class ACowBoyPlayerController* CowBoyOwnerController;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UStaticMeshComponent* WeaponMesh;
@@ -93,4 +98,6 @@ public:
 	void GetWeaponState(EWeaponState& OutState) { OutState = WeaponState; }
 
 	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
+	void Dropped();
 };

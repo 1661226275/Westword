@@ -27,6 +27,19 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ZoomInterSpeed = 20.f;
 
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
+	int32 Ammo;
+
+	void SpendRound();
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	UPROPERTY(EditAnywhere)
+	int32 MagCapacity;
+
+	virtual void OnRep_Owner() override;
+
 public:
 
 	// ¿ª»ðÃÉÌ«Ææ
@@ -66,5 +79,10 @@ public:
 
 	float GetZoomedFov() const { return ZoomFov; }
 	float GetZoomInterSpeed() const { return ZoomInterSpeed; }
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	void SetHUDAmmo();
+
+	bool CanFire() { return Ammo > 0; }
 };

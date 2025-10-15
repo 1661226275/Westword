@@ -116,13 +116,16 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 void UCombatComponent::FireBottonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
-	ServerFire(HitResult.ImpactPoint);
-
-	if (EquippedWeapon)
+	if(CanFire())
 	{
-		CrosshairShootingFactor = 2.f;
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		ServerFire(HitResult.ImpactPoint);
+
+		if (EquippedWeapon)
+		{
+			CrosshairShootingFactor = 2.f;
+		}
 	}
 
 }
@@ -252,7 +255,24 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 		Character->SetWeaponType(EquippedWeapon->WeaponType);
 	}
 	EquippedWeapon->SetOwner(Character);
+	if(Cast<ARangeWeapon>(EquippedWeapon))
+	{
+		ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+		/*Character->GetCharacterMovement()->MaxWalkSpeed = RangeWeapon->GetRifleWalkSpeed();*/
+		RangeWeapon->SetHUDAmmo();
+	}
 
+}
+
+bool UCombatComponent::CanFire()
+{
+	if (EquippedWeapon == nullptr) return false;
+	if(Cast<ARangeWeapon>(EquippedWeapon))
+	{
+		ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+		return RangeWeapon->CanFire();
+	}
+	return true;
 }
 
 

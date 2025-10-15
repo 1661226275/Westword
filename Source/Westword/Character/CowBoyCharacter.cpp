@@ -14,6 +14,10 @@
 #include "Westword/Westword.h"
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "PlayerController/CowBoyPlayerController.h"
+#include "GameMode/WestWorldGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "PlayerState/CowBoyPlayerState.h"
 
 
 // Sets default values
@@ -128,12 +132,50 @@ void ACowBoyCharacter::OnRep_Health(float LastHealth)
 	UpdateHUDHealth();
 }
 
+void ACowBoyCharacter::PlayDieMontage()
+{
+	if (DieMontage == nullptr) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(DieMontage);
+		FName SectionName = FName("DieRight");
+		AnimInstance->Montage_JumpToSection(SectionName);
+		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Death);
+	}
+}
+
+void ACowBoyCharacter::PlayDieShootHeadMontage()
+{
+	if (DieMontage == nullptr)return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(DieMontage);
+		FName SectionName = FName("DieShootHeadBack");
+		AnimInstance->Montage_JumpToSection(SectionName);
+		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Death);
+	}
+}
+
 void ACowBoyCharacter::UpdateHUDHealth()
 {
 	CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
 	if (CowBoyController)
 	{
 		CowBoyController->SetHUDHealth(Health, MaxHealth);
+	}
+}
+
+void ACowBoyCharacter::PollInit()
+{
+	if(CowBoyPlayerState==nullptr)
+	{
+		CowBoyPlayerState = GetPlayerState<ACowBoyPlayerState>();
+		if(CowBoyPlayerState)
+		{
+			CowBoyPlayerState->AddToScore(0.f);
+		}
 	}
 }
 
@@ -147,6 +189,50 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 		FVector2D OutRange(-90.f, 0.f);
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 	}
+}
+
+void ACowBoyCharacter::Elim()
+{
+	if(Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Dropped();
+	}
+	MultCastElim();
+}
+
+void ACowBoyCharacter::RequestRespawn()
+{
+	AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+	if (WestWorldGameMode)
+	{
+		WestWorldGameMode->RequestRespawn(this,CowBoyController);
+	}
+}
+
+void ACowBoyCharacter::MulticastRespawn_Implementation()
+{
+}
+
+void ACowBoyCharacter::MultCastElim_Implementation()
+{
+	bElimmed = true;
+	if (!bShootHead)
+	{
+		PlayDieMontage();
+	}
+	else 
+	{
+		PlayDieShootHeadMontage();
+	}
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+
+	if (CowBoyController)
+	{
+		DisableInput(CowBoyController);
+	}
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 }
 
 void ACowBoyCharacter::PlayHitReactMontage()
@@ -167,6 +253,16 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
+
+	if (Health <= 0.f)
+	{
+		AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+		if (WestWorldGameMode)
+		{
+			CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+			WestWorldGameMode->PlayerEliminated(this, CowBoyController, InstigatedBy);
+		}
+	}
 }
 
 
@@ -216,6 +312,8 @@ void ACowBoyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	AimOffset(DeltaTime);
+	HideCharacterIfCharacterClose();
+	PollInit();
 }
 
 // Called to bind functionality to input
