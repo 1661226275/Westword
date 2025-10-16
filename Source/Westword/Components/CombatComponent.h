@@ -7,6 +7,7 @@
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
 #include "Westword/HUD/CowBoyHUD.h"
+#include "DataType/EnumData.h"
 #include "CombatComponent.generated.h"
 
 
@@ -24,6 +25,17 @@ public:
 	void SetPlayerState(ECharacterState NewState);
 	UFUNCTION(Reliable, Server)
 	void ServerSetPlayerState(ECharacterState NewState);
+
+
+	void Reload();
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+	//¹ã²¥»»µ¯¶¯»­
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastReload();
+
+	int AmountToReload();
+	
 
 protected:
 	// Called when the game starts
@@ -77,6 +89,25 @@ private:
 	float ZoomInterSpeed = 20.f;
 
 	void InterFov(float DeltaTime);
+
+
+	//Carried Ammo for the currently equipped weapon
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	int32 StatrtingRoundAmmo = 30;
+	void InitializeCarriedAmmo();
+
+	void UpdateAmmoValues();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 public:
 	UFUNCTION(BlueprintCallable)

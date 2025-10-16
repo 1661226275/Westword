@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Westword/PlayerController/CowBoyPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "Sound/SoundCue.h"
 
 
 
@@ -21,6 +22,7 @@ UCombatComponent::UCombatComponent()
 }
 
 
+
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
@@ -29,6 +31,10 @@ void UCombatComponent::BeginPlay()
 	{
 		DefaultFOV = Character->GetThirdViewCamera()->FieldOfView;
 		CurrentFOV = DefaultFOV;
+	}
+	if(Character->HasAuthority())
+	{
+		InitializeCarriedAmmo();
 	}
 
 }
@@ -116,6 +122,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 void UCombatComponent::FireBottonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
+	
 	if(CanFire())
 	{
 		FHitResult HitResult;
@@ -236,6 +243,96 @@ void UCombatComponent::InterFov(float DeltaTime)
 	}
 }
 
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::WeaponType_Gun, StatrtingRoundAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::WeaponType_Melee, 0);
+
+}
+
+
+
+void UCombatComponent::Reload()
+{
+	if (EquippedWeapon == nullptr) return;
+	if (Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Blank && Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Slide) return;
+	if(CarriedAmmo > 0 && EquippedWeapon)
+	{
+		ServerReload();
+	}
+}
+
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	UpdateAmmoValues();
+	//
+	MultiCastReload();
+}
+
+void UCombatComponent::MultiCastReload_Implementation()
+{
+	if (EquippedWeapon == nullptr) return;
+	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+	if (RangeWeapon)
+	{
+		RangeWeapon->PlayReloadMontage();
+		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Reload);
+	}
+}
+
+int UCombatComponent::AmountToReload()
+{
+	if (EquippedWeapon == nullptr) return 0;
+	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+	if (RangeWeapon)
+	{
+		int32 RoomInMag = RangeWeapon->GetMagCapacity() - RangeWeapon->GetAmmo();
+
+		if (CarriedAmmoMap.Contains(RangeWeapon->WeaponType))
+		{
+			int32 AmountCarried = CarriedAmmoMap[RangeWeapon->WeaponType];
+			int32 Least = FMath::Min(RoomInMag, AmountCarried);
+			return FMath::Clamp(RoomInMag, 0, Least);
+		}
+	}
+	return 0;
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	int32 ReloadAmount = AmountToReload();
+	if (CarriedAmmoMap.Contains(Cast<ARangeWeapon>(EquippedWeapon)->WeaponType))
+	{
+		CarriedAmmoMap[Cast<ARangeWeapon>(EquippedWeapon)->WeaponType] -= ReloadAmount;
+		CarriedAmmo = CarriedAmmoMap[Cast<ARangeWeapon>(EquippedWeapon)->WeaponType];
+	}
+
+	Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+
+	Cast<ARangeWeapon>(EquippedWeapon)->AddAmmo(-ReloadAmount);
+}
+void UCombatComponent::FinishReloading()
+{
+	Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
+	if(Character->HasAuthority())
+	{
+		UpdateAmmoValues();
+	}
+}
 void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 {
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
@@ -260,6 +357,27 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 		ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
 		/*Character->GetCharacterMovement()->MaxWalkSpeed = RangeWeapon->GetRifleWalkSpeed();*/
 		RangeWeapon->SetHUDAmmo();
+		if(CarriedAmmoMap.Contains(RangeWeapon->WeaponType))
+		{
+			CarriedAmmo = CarriedAmmoMap[RangeWeapon->WeaponType];
+		}
+		else
+		{
+			CarriedAmmo = 0;
+		}
+		Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDCarriedAmmo(CarriedAmmo);
+		}
+	}
+	if (EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			EquippedWeapon->EquipSound,
+			Character->GetActorLocation()
+		);
 	}
 
 }
@@ -282,6 +400,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, Player_State);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
 void UCombatComponent::SetPlayerState(ECharacterState NewState)

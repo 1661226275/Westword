@@ -103,6 +103,8 @@ protected:
 	void FireBottonPressed();
 	void FireBottonReleased();
 
+	void ReloadBottonPressed();
+
 	void PlayHitReactMontage();
 
 	UFUNCTION()
@@ -129,6 +131,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Animation)
 	class UAnimMontage* RespawnMontage;
+
 
 	
 

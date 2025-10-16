@@ -41,6 +41,21 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 
 void ARangeWeapon::PlayReloadMontage()
 {
+	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(GetOwner());
+	UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName ;
+		switch (WeaponType)
+		{
+		case EWeaponType::WeaponType_Gun:
+			SectionName = FName("Reload");
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName, ReloadMontage);
+		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Reload);
+	}
 }
 
 void ARangeWeapon::PlayEquipMontage()
@@ -94,6 +109,12 @@ void ARangeWeapon::SetHUDAmmo()
 			CowBoyOwnerController->SetHUDWeaponAmmo(Ammo);
 		}
 	}
+}
+
+void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
 }
 
 void ARangeWeapon::SpendRound()

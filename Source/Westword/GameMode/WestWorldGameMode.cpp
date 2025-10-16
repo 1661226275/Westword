@@ -6,6 +6,31 @@
 #include "PlayerController/CowBoyPlayerController.h"
 #include "PlayerState/CowBoyPlayerState.h"
 
+AWestWorldGameMode::AWestWorldGameMode()
+{
+	bDelayedStart = true;
+}
+
+void AWestWorldGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+void AWestWorldGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if(MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if(CountdownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+	
+}
+
 void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, ACowBoyPlayerController* VictimController, AController* AttackController)
 {
 	ACowBoyPlayerState* VictimPlayerState = VictimController ? Cast<ACowBoyPlayerState>(VictimController->PlayerState) : nullptr;
@@ -35,3 +60,5 @@ void AWestWorldGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AControlle
 
 	}
 }
+
+

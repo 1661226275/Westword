@@ -83,6 +83,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	class UAnimMontage* UnequipAnimMontage;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* EquipSound;
     // ²¥·Å×°±¸ÎäÆ÷ÃÉÌ«Ææ
     UFUNCTION(BlueprintCallable)
     virtual void PlayEquipMontage();

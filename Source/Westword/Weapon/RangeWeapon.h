@@ -85,4 +85,9 @@ public:
 	void SetHUDAmmo();
 
 	bool CanFire() { return Ammo > 0; }
+
+	int32 GetAmmo() const { return Ammo; }
+	int32 GetMagCapacity() const { return MagCapacity; }
+
+	void AddAmmo(int32 AmmoToAdd);
 };

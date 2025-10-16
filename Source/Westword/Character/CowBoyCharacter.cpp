@@ -330,6 +330,7 @@ void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ACowBoyCharacter::AimBottonReleased);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ACowBoyCharacter::FireBottonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ACowBoyCharacter::FireBottonReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ACowBoyCharacter::ReloadBottonPressed);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACowBoyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACowBoyCharacter::MoveRight);
@@ -475,6 +476,14 @@ void ACowBoyCharacter::FireBottonReleased()
 	if (Combat)
 	{
 		Combat->FireBottonPressed(false);
+	}
+}
+
+void ACowBoyCharacter::ReloadBottonPressed()
+{
+	if (Combat)
+	{
+		Combat->Reload();
 	}
 }
 
