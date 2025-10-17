@@ -4,13 +4,16 @@
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 #include "CharacterOverlay.h"
+#include "Announcement.h"
 
 
 void ACowBoyHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	AddCharacterOverlay();
+	
 }
+
+
 
 void ACowBoyHUD::AddCharacterOverlay()
 {
@@ -20,6 +23,16 @@ void ACowBoyHUD::AddCharacterOverlay()
 		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
 
+	}
+}
+
+void ACowBoyHUD::AddAnnouncement()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if (PlayerController && AnnouncementClass && Announcement == nullptr)
+	{
+		Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
+		Announcement->AddToViewport();
 	}
 }
 

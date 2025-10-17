@@ -6,6 +6,11 @@
 #include "GameFramework/GameMode.h"
 #include "WestWorldGameMode.generated.h"
 
+namespace MatchState
+{
+	extern WESTWORD_API const FName Cooldown;//Ω·À„
+}
+
 /**
  * 
  */
@@ -23,10 +28,17 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 10.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float MarchTime = 120.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CooldownTime = 10.f;
+
 	float LevelStartingTime = 0.f;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnMatchStateSet() override;
 
 private:
 	UPROPERTY(EditDefaultsOnly)

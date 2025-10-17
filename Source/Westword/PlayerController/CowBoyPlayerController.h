@@ -20,15 +20,22 @@ public:
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDAnnouncementCountdown(float CountdownTime);
 	void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual float GetServerTime();//Get current server time
 
 	virtual void ReceivedPlayer() override;
+	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
+	
 protected:
 	virtual void BeginPlay() override;
+	void HandleMatchHasStarted(bool bTeamsMatch = false);
+	void HandleWarmup();
+	void HandleCooldown();
 	void SetHUDTime();
+	void PollInit();
 	/*
 	* Sync time on client and server
 	*/
@@ -47,9 +54,33 @@ protected:
 
 	void CheckTimeSync(float DeltaTime);
 
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidGame(FName State, float Warmup, float Match, float StartingTime);
+
+
+
 private:
 	class ACowBoyHUD* CowboyHUD;
 	
-	float MatchTime = 120.f;
+	float MatchTime = 0.f;
+	float WarmupTime = 0.f;
+	float LevelStartingTime = 0.f;
 	uint32 CountdownInt = 0;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName MatchState;
+
+	UFUNCTION()
+	void OnRep_MatchState();
+
+	UPROPERTY()
+	class UCharacterOverlay* CharacterOverlay;
+	bool bInitializedCharacterOverlay = false;
+
+	float HUDHealth;
+	float HUDMaxHealth;
+	float HUDScore;
 };

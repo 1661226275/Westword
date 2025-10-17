@@ -8,6 +8,7 @@
 #include "Weapon/RangeWeapon.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/CombatComponent.h"
+#include "Components/BuffeComponent.h"
 #include "CowBoyCharacter.generated.h"
 
 UCLASS(Blueprintable, BlueprintType)
@@ -32,6 +33,7 @@ public:
 
 	//重叠武器设置函数,这个函数只会在服务器上被调用
 	void SetOverLapWeapon(AWeaponBase* Weapon);
+	void SetOverLapInteractActor(class APickup* Actor);
 
 	virtual void PostInitializeComponents() override;
 
@@ -145,13 +147,21 @@ private:
 	UPROPERTY(ReplicatedUsing = RepNotify_OverLapWeapon)
 	class AWeaponBase* OverLapWeapon;
 
+	UPROPERTY(ReplicatedUsing = RepNotify_OverLapInteractActor)
+	class APickup* OverLapInteractActor;
+
 	//网络复制通知
 	UFUNCTION()
 	void RepNotify_OverLapWeapon(AWeaponBase* LastWeapon);
 
+	UFUNCTION()
+	void RepNotify_OverLapInteractActor(class APickup* LastActor);
+
 	UPROPERTY(VisibleAnywhere)
 	class UCombatComponent* Combat;
 
+	UPROPERTY(VisibleAnywhere)
+	class UBuffeComponent* Buff;
 	float ForwardInput;
 	float RightInput;
 

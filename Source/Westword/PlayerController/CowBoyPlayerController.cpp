@@ -4,23 +4,36 @@
 #include "PlayerController/CowBoyPlayerController.h"
 #include "HUD/CowBoyHUD.h"
 #include "HUD/CharacterOverlay.h"
+#include "HUD/Announcement.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Character/CowBoyCharacter.h"
-
+#include "GameMode/WestWorldGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 void ACowBoyPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ServerCheckMatchState();
 	CowboyHUD = Cast<ACowBoyHUD>(GetHUD());
+	
 }
+
 
 void ACowBoyPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetHUDTime();
 	CheckTimeSync(DeltaTime);
+	PollInit();
 
+}
+
+void ACowBoyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACowBoyPlayerController, MatchState);
 }
 
 void ACowBoyPlayerController::SetHUDHealth(float Health, float MaxHealth)
@@ -33,6 +46,12 @@ void ACowBoyPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		FString HealthText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		CowboyHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
 	}
+	else
+	{
+		bInitializedCharacterOverlay = true;
+		HUDHealth = Health;
+		HUDMaxHealth = MaxHealth;
+	}
 }
 
 void ACowBoyPlayerController::SetHUDScore(float Score)
@@ -41,6 +60,10 @@ void ACowBoyPlayerController::SetHUDScore(float Score)
 	if (CowboyHUD && CowboyHUD->CharacterOverlay)
 	{
 		CowboyHUD->CharacterOverlay->ScoreAmount->SetText(FText::AsNumber(FMath::CeilToInt(Score)));
+	}
+	{
+		bInitializedCharacterOverlay = true;
+		HUDScore = Score;
 	}
 }
 
@@ -74,6 +97,18 @@ void ACowBoyPlayerController::SetHUDMatchCountdown(float CountdownTime)
 	}
 }
 
+void ACowBoyPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->Announcement)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 Seconds = FMath::CeilToInt(CountdownTime) - (Minutes * 60);
+		FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		CowboyHUD->Announcement->WarmupTime->SetText(FText::FromString(CountdownText));
+	}
+}
+
 void ACowBoyPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -89,12 +124,44 @@ void ACowBoyPlayerController::OnPossess(APawn* InPawn)
 
 void ACowBoyPlayerController::SetHUDTime()
 {
-	uint32 SecondsLeft = FMath::CeilToInt(MatchTime-GetServerTime());
+	float TimeLeft = 0.f;
+	if(MatchState == MatchState::WaitingToStart)
+	{
+		TimeLeft = WarmupTime - (GetServerTime() - LevelStartingTime);
+	}
+	else if(MatchState == MatchState::InProgress)
+	{
+		TimeLeft = WarmupTime+MatchTime - (GetServerTime() - LevelStartingTime);
+	}
+	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
 	if(CountdownInt != SecondsLeft)
 	{
-		SetHUDMatchCountdown(SecondsLeft);
+		if(MatchState == MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountdown(SecondsLeft);
+		}
+		else if(MatchState == MatchState::InProgress)
+		{
+			SetHUDMatchCountdown(SecondsLeft);
+		}
 	}
 	CountdownInt = SecondsLeft;
+}
+
+void ACowBoyPlayerController::PollInit()
+{
+	if (CharacterOverlay == nullptr)
+	{
+		if(CowboyHUD && CowboyHUD->CharacterOverlay)
+		{
+			CharacterOverlay = CowboyHUD->CharacterOverlay;
+			if (CharacterOverlay)
+			{
+				SetHUDHealth(HUDHealth, HUDMaxHealth);
+				SetHUDScore(HUDScore);
+			}
+		}
+	}
 }
 
 void ACowBoyPlayerController::CheckTimeSync(float DeltaTime)
@@ -105,6 +172,33 @@ void ACowBoyPlayerController::CheckTimeSync(float DeltaTime)
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
 		TimeSyncRunningTime = 0.f;
 	}
+}
+
+
+
+
+
+void ACowBoyPlayerController::ServerCheckMatchState_Implementation()
+{
+	AWestWorldGameMode* WestWorldGameMode = Cast<AWestWorldGameMode>(UGameplayStatics::GetGameMode(this));
+	if (WestWorldGameMode)
+	{
+		WarmupTime = WestWorldGameMode->WarmupTime;
+		MatchTime = WestWorldGameMode->MarchTime;
+		LevelStartingTime = WestWorldGameMode->LevelStartingTime;
+		MatchState = WestWorldGameMode->GetMatchState();
+		ClientJoinMidGame(MatchState, WarmupTime, MatchTime, LevelStartingTime);
+	}
+}
+
+
+void ACowBoyPlayerController::ClientJoinMidGame_Implementation(FName State, float Warmup, float Match, float StartingTime)
+{
+	WarmupTime = Warmup;
+	MatchTime = Match;
+	LevelStartingTime = StartingTime;
+	MatchState = State;
+	OnMatchStateSet(MatchState);
 }
 
 void ACowBoyPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedRequest)
@@ -138,4 +232,80 @@ void ACowBoyPlayerController::ReceivedPlayer()
 	{
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
 	}
+}
+
+void ACowBoyPlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
+{
+	MatchState = State;
+	if(MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted(bTeamsMatch);
+	}
+	else if(MatchState == MatchState::WaitingToStart)
+	{
+		HandleWarmup();
+	}
+	else if(MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
+	
+	
+}
+
+
+
+void ACowBoyPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+	else if(MatchState == MatchState::WaitingToStart)
+	{
+		HandleWarmup();
+	}
+	else if(MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
+}
+
+void ACowBoyPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
+{
+
+
+	if (CowboyHUD)
+	{
+		CowboyHUD->AddCharacterOverlay();
+		if (CowboyHUD->Announcement)
+		{
+			CowboyHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+}
+
+void ACowBoyPlayerController::HandleWarmup()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+
+	if (CowboyHUD)
+	{
+		CowboyHUD->AddAnnouncement();
+	}
+
+}
+
+
+void ACowBoyPlayerController::HandleCooldown()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD)
+	{
+		CowboyHUD->CharacterOverlay->RemoveFromParent();
+		CowboyHUD->AddAnnouncement();
+		
+	}
+
 }

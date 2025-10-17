@@ -6,6 +6,11 @@
 #include "PlayerController/CowBoyPlayerController.h"
 #include "PlayerState/CowBoyPlayerState.h"
 
+namespace MatchState
+{
+	const FName Cooldown = FName(TEXT("Cooldown"));
+}
+
 AWestWorldGameMode::AWestWorldGameMode()
 {
 	bDelayedStart = true;
@@ -15,6 +20,19 @@ void AWestWorldGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+void AWestWorldGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+	for(FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator();It;++It)
+	{
+		ACowBoyPlayerController* CowBoyPlayerController = Cast<ACowBoyPlayerController>(It->Get());
+		if(CowBoyPlayerController)
+		{
+			CowBoyPlayerController->OnMatchStateSet(MatchState);
+		}
+	}
 }
 
 void AWestWorldGameMode::Tick(float DeltaTime)
@@ -28,6 +46,15 @@ void AWestWorldGameMode::Tick(float DeltaTime)
 			StartMatch();
 		}
 	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		CountdownTime = WarmupTime + MarchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if(CountdownTime <= 0.f)
+		{
+			SetMatchState(MatchState::Cooldown);
+		}
+	}
+	
 	
 }
 

@@ -16,6 +16,7 @@
 #include "PlayerController/CowBoyPlayerController.h"
 #include "GameMode/WestWorldGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Pickups/Pickup.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerState/CowBoyPlayerState.h"
 
@@ -37,6 +38,9 @@ ACowBoyCharacter::ACowBoyCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>( TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
 
+	Buff = CreateDefaultSubobject<UBuffeComponent>(TEXT("BuffComponent"));
+	Buff->SetIsReplicated(true);
+	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
@@ -52,6 +56,7 @@ void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapInteractActor, COND_OwnerOnly);
 	DOREPLIFETIME(ACowBoyCharacter, WeaponSolts);
 	DOREPLIFETIME(ACowBoyCharacter, Health);
 }
@@ -63,6 +68,10 @@ void ACowBoyCharacter::PostInitializeComponents()
 	{
 		Combat->PrimaryComponentTick.bCanEverTick = true;
 		Combat->Character = this;
+	}
+	if (Buff)
+	{
+		Buff->Character = this;
 	}
 }
 
@@ -89,6 +98,27 @@ void ACowBoyCharacter::SetOverLapWeapon(AWeaponBase* Weapon)
 	}
 }
 
+void ACowBoyCharacter::SetOverLapInteractActor(APickup* Actor)
+{
+	if (OverLapInteractActor)
+	{
+		Actor->SetInteractWidgetVisibility(false);
+	}
+	OverLapInteractActor = Actor;
+	if (IsLocallyControlled())
+	{
+		if (OverLapInteractActor)
+		{
+			OverLapInteractActor->SetInteractWidgetVisibility(true);
+			//ÈÕÖ¾Êä³ö
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SetPickUpWidgetVisibility"));
+			}
+		}
+	}
+}
+
 
 
 
@@ -101,6 +131,18 @@ void ACowBoyCharacter::RepNotify_OverLapWeapon(AWeaponBase* LastWeapon)
 	if (LastWeapon)
 	{
 		LastWeapon->SetPickUpWidgetVisibility(false);
+	}
+}
+
+void ACowBoyCharacter::RepNotify_OverLapInteractActor(APickup* LastActor)
+{
+	if (OverLapInteractActor)
+	{
+		OverLapInteractActor->SetInteractWidgetVisibility(true);
+	}
+	if(LastActor)
+	{
+		LastActor->SetInteractWidgetVisibility(false);
 	}
 }
 
@@ -445,6 +487,10 @@ void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
 
 void ACowBoyCharacter::PickUpBottonPressed()
 {
+	if (OverLapInteractActor)
+	{
+		OverLapInteractActor->Interact(this);
+	}
 }
 
 void ACowBoyCharacter::AimBottonPressed()
