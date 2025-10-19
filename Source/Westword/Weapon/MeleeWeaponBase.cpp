@@ -7,6 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Character/CowBoyCharacter.h"
+#include "Sound/SoundCue.h"
 #include "Westword.h"
 
 
@@ -92,13 +93,31 @@ void AMeleeWeaponBase::MeleeHitChannelTrace()
             UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitActor->GetName());
             if (HitActor != LastHitActor)
             {
-                UGameplayStatics::ApplyDamage(
-                    HitActor,
-                    Damage, // 伤害值
-                    GetInstigatorController(),
-                    this,
-                    UDamageType::StaticClass()
-                );
+                if (Cast<APawn>(HitActor))
+                {
+                    LastHitActor = HitActor;
+                    UGameplayStatics::PlaySoundAtLocation(this, ImpactBodySound, GetActorLocation());
+                    ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+                    if (OwnerCharacter)
+                    {
+                        AController* OwnerController = OwnerCharacter->GetController();
+                        UGameplayStatics::ApplyDamage(
+                            HitActor,
+                            Damage, // 伤害值
+                            OwnerController,  // GetInstigatorController()有问题
+                            this,
+                            UDamageType::StaticClass()
+                        );
+                    }
+                   
+                    
+                    
+                }
+                else
+                {
+                    UGameplayStatics::PlaySoundAtLocation(this, ImpactSurfaceSound, GetActorLocation());
+                }
+                
             }
       
             
@@ -110,11 +129,12 @@ void AMeleeWeaponBase::HandleAttack()
 {
     if (Cast<ACowBoyCharacter>(GetOwner()))
     {
+        LastHitActor = nullptr;
         //在服务器上设置定时器调用MeleeHitChannelTrace，每隔0.3秒调用一次，通过动画通知调用EndAttack取消定时器
         Cast<ACowBoyCharacter>(GetOwner())->GetWorldTimerManager().SetTimer(
             AttackTimeHandle,
             this, &AMeleeWeaponBase::MeleeHitChannelTrace,
-            0.3f,
+            0.05f,
             true
         );
     }
@@ -145,10 +165,12 @@ void AMeleeWeaponBase::PlayEquipMontage()
         Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Slide))
     {
         AnimInstance->Montage_Play(EquipAnimMontage, 1.f);
+        FName SectionName = FName("EquipMelee");
+        AnimInstance->Montage_JumpToSection(SectionName, EquipAnimMontage);
         Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_EquipWeapon);
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("RangeWeapon Playing Equip Montage")));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MeleeWeapon Playing Equip Montage")));
         }
     }
 }
@@ -162,6 +184,8 @@ void AMeleeWeaponBase::PlayUnEquipMontage()
         Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Slide))
     {
         AnimInstance->Montage_Play(UnequipAnimMontage, 1.f);
+        FName SectionName = FName("UnEquipMelee");
+        AnimInstance->Montage_JumpToSection(SectionName, UnequipAnimMontage);
         Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_UnEquipWeapon);
         if (GEngine)
         {

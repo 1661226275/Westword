@@ -47,8 +47,8 @@ ACowBoyCharacter::ACowBoyCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	WeaponSolts.Init(nullptr, 2);
-
-
+	EquipWeaponSocket.Add(0, FName("HolsterSocket"));
+	EquipWeaponSocket.Add(1, FName("HolsterMeleeSocket"));
 
 }
 
@@ -82,31 +82,24 @@ void ACowBoyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	//生成武器
-	if (HasAuthority() && WeaponClass)
+	if (HasAuthority())
 	{
-		WeaponSolts[0] = GetWorld()->SpawnActor<ARangeWeapon>(WeaponClass);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No WeaponClass")));
-	}
-
-	if (WeaponSolts[0])
-	{
-		if (GEngine)
+		for (int i = 0; i<WeaponClass.Num();i++)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[0]->GetName()));
-		}
-		const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName("HolsterSocket");
-		if (HolsterSocket)
-		{
-			if (GEngine)
+			if (WeaponClass[i] == nullptr) continue;
+			WeaponSolts[i] = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass[i]);
+			if (WeaponSolts[i])
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Get HolsterSocket")));
+				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[i]->GetName()));
+				FName SocketName = EquipWeaponSocket[i];
+				const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
+				if (HolsterSocket)
+				{
+					HolsterSocket->AttachActor(WeaponSolts[i], GetMesh());
+					WeaponSolts[i]->SetOwner(this);
+					WeaponSolts[i]->SetWeaponState(EWeaponState::EWS_PickUp);
+				}
 			}
-			HolsterSocket->AttachActor(WeaponSolts[0], GetMesh());
-			WeaponSolts[0]->SetOwner(this);
-			WeaponSolts[0]->SetWeaponState(EWeaponState::EWS_PickUp);
 		}
 	}
 
@@ -115,6 +108,8 @@ void ACowBoyCharacter::BeginPlay()
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ACowBoyCharacter::ReceiveDamage);
 	}
+
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
 }
 
 
@@ -289,14 +284,7 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 	}
 }
 
-void ACowBoyCharacter::Elim()
-{
-	if(Combat && Combat->EquippedWeapon)
-	{
-		Combat->EquippedWeapon->Dropped();
-	}
-	MultCastElim();
-}
+
 
 void ACowBoyCharacter::RequestRespawn()
 {
@@ -311,6 +299,15 @@ void ACowBoyCharacter::MulticastRespawn_Implementation()
 {
 }
 
+
+void ACowBoyCharacter::Elim()
+{
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Dropped();
+	}
+	MultCastElim();
+}
 void ACowBoyCharacter::MultCastElim_Implementation()
 {
 	bElimmed = true;
@@ -330,6 +327,7 @@ void ACowBoyCharacter::MultCastElim_Implementation()
 		DisableInput(CowBoyController);
 	}
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_MeleeTraceChannel,ECollisionResponse::ECR_Ignore);
 	
 }
 
@@ -373,9 +371,10 @@ void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACowBoyCharacter::Jump);
 	PlayerInputComponent->BindAction("Slide", IE_Pressed, this, &ACowBoyCharacter::Slide);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ACowBoyCharacter::Slide);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ACowBoyCharacter::Slide);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ACowBoyCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ACowBoyCharacter::EndSprint);
 	PlayerInputComponent->BindAction("EquipRange", IE_Pressed, this, &ACowBoyCharacter::EquipRangeWeaponBottonPressed);
+	PlayerInputComponent->BindAction("EquipMelee", IE_Pressed, this, &ACowBoyCharacter::EquipMeleeWeaponBottonPressed);
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ACowBoyCharacter::PickUpBottonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ACowBoyCharacter::AimBottonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ACowBoyCharacter::AimBottonReleased);
@@ -463,11 +462,15 @@ void ACowBoyCharacter::MultiCastSlide_Implementation()
 
 void ACowBoyCharacter::StartSprint()
 {
-
+	bIsSprinting = true;
+	GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+	
 }
 
 void ACowBoyCharacter::EndSprint()
 {
+	bIsSprinting = false;
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
 }
 
 void ACowBoyCharacter::EquipRangeWeaponBottonPressed()
@@ -477,7 +480,11 @@ void ACowBoyCharacter::EquipRangeWeaponBottonPressed()
 
 void ACowBoyCharacter::ServerEquipRangeWeapon_Implementation()
 {
-	MultiCastEquipRangeWeapon();
+	if (Combat && WeaponSolts[0])
+	{
+		MultiCastEquipRangeWeapon();
+	}
+	
 }
 
 void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
@@ -492,9 +499,41 @@ void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
 		//情况1
 		if (WeaponSolts[0] && WeaponType == EWeaponType::WeaponType_None)
 		{
-			
-			Combat->EquipWeapon(WeaponSolts[0]);
 			WeaponSolts[0]->PlayEquipMontage();
+			Combat->EquipWeapon(WeaponSolts[0]);
+		}
+
+	}
+}
+
+void ACowBoyCharacter::EquipMeleeWeaponBottonPressed()
+{
+	ServerEquipMeleeWeapon();
+}
+
+void ACowBoyCharacter::ServerEquipMeleeWeapon_Implementation()
+{
+	if (Combat && WeaponSolts[1])
+	{
+		MultiCastEquipMeleeWeapon();
+	}
+}
+
+void ACowBoyCharacter::MultiCastEquipMeleeWeapon_Implementation()
+{
+	//装备近战武器,分四种情况判断
+	//1.近战武器槽有武器，且现在空手状态，装备武器
+	//2.近战武器槽有武器，且现在持有近战武器，收起近战武器
+	//3.近战武器槽有武器，且现在持有远程武器，收起远程武器再装备近战武器
+	//4.近战武器槽无武器，无法装备
+	if (Combat)
+	{
+		//情况1
+		if (WeaponSolts[1] && WeaponType == EWeaponType::WeaponType_None)
+		{
+			WeaponSolts[1]->PlayEquipMontage();
+			Combat->EquipWeapon(WeaponSolts[1]);
+			
 		}
 
 	}

@@ -6,6 +6,7 @@
 #include "DataType/EnumData.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
+#include "Weapon/MeleeWeaponBase.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/CombatComponent.h"
 #include "Components/BuffeComponent.h"
@@ -84,6 +85,12 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastEquipRangeWeapon();
 
+	void EquipMeleeWeaponBottonPressed();
+	UFUNCTION(Server, Reliable)
+	void ServerEquipMeleeWeapon();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastEquipMeleeWeapon();
+
 
 	void PickUpBottonPressed();
 	void AimBottonPressed();
@@ -123,7 +130,7 @@ private:
 	UPROPERTY(Replicated,VisibleAnyWhere, Category = Weapon)
 	TArray<AWeaponBase*>WeaponSolts;
 	UPROPERTY( EditAnywhere, Category = Weapon)
-	TSubclassOf<AWeaponBase> WeaponClass;
+	TArray<TSubclassOf<AWeaponBase>> WeaponClass;
 
 	//ÍøÂç¸´ÖÆ±äÁ¿
 	UPROPERTY(ReplicatedUsing = RepNotify_OverLapWeapon)
@@ -166,10 +173,21 @@ private:
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
+	TMap<int32, FName> EquipWeaponSocket;
+
 	class ACowBoyPlayerController* CowBoyController;
+
+	/*
+	* player movement
+	*/
+	UPROPERTY(EditAnyWhere)
+	float MaxWalkSpeed = 200.f;
+	UPROPERTY(EditAnyWhere)
+	float MaxSprintSpeed = 500.f;
 
 	bool bElimmed = false;
 	bool bShootHead = false;
+	bool bIsSprinting = false;
 
 public:	
 
@@ -200,7 +218,9 @@ public:
 	float GetHealth() const { return Health; }
 	float GetMaxHealth() const { return MaxHealth; }
 	void SetHealth(float NewHealth) { Health = NewHealth; }
-
+	void SetMaxWalkSpeed(float NewSpeed) { MaxWalkSpeed = NewSpeed; }
+	void SetMaxSprintSpeed(float NewSpeed) { MaxSprintSpeed = NewSpeed; }
+	bool IsSprinting() const {return bIsSprinting;}
 	class ACowBoyPlayerState* CowBoyPlayerState;
 	UBuffeComponent* GetBuffComponent() const { return Buff; }
 };

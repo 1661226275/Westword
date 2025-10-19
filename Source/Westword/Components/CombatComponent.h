@@ -118,6 +118,8 @@ public:
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
 
 	FVector GetHitTarget() const {return HitTarget;}
+	UFUNCTION(BlueprintCallable)
+	AWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
 
 	bool CanAttack();
 

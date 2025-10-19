@@ -67,12 +67,32 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		{
 			if (EquippedWeapon)
 			{
-				ARangeWeapon* CurrentWeapon = Cast<ARangeWeapon>(EquippedWeapon);
-				HUDPackage.CrosshairsCenter = CurrentWeapon->CrosshairsCenter;
-				HUDPackage.CrosshairsLeft = CurrentWeapon->CrosshairsLeft;
-				HUDPackage.CrosshairsRight = CurrentWeapon->CrosshairsRight;
-				HUDPackage.CrosshairsTop = CurrentWeapon->CrosshairsTop;
-				HUDPackage.CrosshairsBottom = CurrentWeapon->CrosshairsBottom;
+				switch (EquippedWeapon->GetWeaponType()) {
+					case EWeaponType::WeaponType_Gun:
+					{
+						ARangeWeapon* CurrentWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+						HUDPackage.CrosshairsCenter = CurrentWeapon->CrosshairsCenter;
+						HUDPackage.CrosshairsLeft = CurrentWeapon->CrosshairsLeft;
+						HUDPackage.CrosshairsRight = CurrentWeapon->CrosshairsRight;
+						HUDPackage.CrosshairsTop = CurrentWeapon->CrosshairsTop;
+						HUDPackage.CrosshairsBottom = CurrentWeapon->CrosshairsBottom;
+						break;
+					}
+					
+					case EWeaponType::WeaponType_Melee:
+					{
+						AMeleeWeaponBase* CurrentWeapon = Cast<AMeleeWeaponBase>(EquippedWeapon);
+						HUDPackage.CrosshairsCenter = CurrentWeapon->CrosshairsCenter;
+						HUDPackage.CrosshairsLeft = CurrentWeapon->CrosshairsLeft;
+						HUDPackage.CrosshairsRight = CurrentWeapon->CrosshairsRight;
+						HUDPackage.CrosshairsTop = CurrentWeapon->CrosshairsTop;
+						HUDPackage.CrosshairsBottom = CurrentWeapon->CrosshairsBottom;
+						break;
+					}
+					
+
+				}
+				
 			}
 			else
 			{
@@ -122,6 +142,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 
 void UCombatComponent::AttackBottonPressed(bool bPressed)
 {
+	if (EquippedWeapon == nullptr) return;
 	bFireButtonPressed = bPressed;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
 		FString::Printf(TEXT("Overlap Actor Name is %s"),
@@ -268,10 +289,18 @@ void UCombatComponent::InterFov(float DeltaTime)
 	if (EquippedWeapon == nullptr) return;
 	if (Character->IsAiming())
 	{
-		CurrentFOV = FMath::FInterpTo(CurrentFOV, 
-			Cast<ARangeWeapon>(EquippedWeapon)->GetZoomedFov()
-			, DeltaTime, 
-			Cast<ARangeWeapon>(EquippedWeapon)->GetZoomInterSpeed());
+		switch (EquippedWeapon->GetWeaponType())
+		{
+			case EWeaponType::WeaponType_Gun:
+			{
+				CurrentFOV = FMath::FInterpTo(CurrentFOV,
+					Cast<ARangeWeapon>(EquippedWeapon)->GetZoomedFov()
+					, DeltaTime,
+					Cast<ARangeWeapon>(EquippedWeapon)->GetZoomInterSpeed());
+				break;
+			}
+		}
+		
 
 	}
 	else
@@ -379,39 +408,53 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	if (Character == nullptr || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket");
-	if (HandSocket)
+	switch (EquippedWeapon->GetWeaponType())
 	{
-		if (HandSocket->AttachActor(EquippedWeapon, Character->GetMesh()))
+		case EWeaponType::WeaponType_Gun:
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Attach Success")));
+			const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket");
+			if (HandSocket)
+			{
+				HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+				Character->SetWeaponType(EquippedWeapon->WeaponType);
+			}
+			EquippedWeapon->SetOwner(Character);
+			if (Cast<ARangeWeapon>(EquippedWeapon))
+			{
+				ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+				/*Character->GetCharacterMovement()->MaxWalkSpeed = RangeWeapon->GetRifleWalkSpeed();*/
+				RangeWeapon->SetHUDAmmo();
+				if (CarriedAmmoMap.Contains(RangeWeapon->WeaponType))
+				{
+					CarriedAmmo = CarriedAmmoMap[RangeWeapon->WeaponType];
+				}
+				else
+				{
+					CarriedAmmo = 0;
+				}
+				Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+				if (Controller)
+				{
+					Controller->SetHUDCarriedAmmo(CarriedAmmo);
+				}
+			}
+			break;
 		}
-		else
+
+		case EWeaponType::WeaponType_Melee:
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Attach Fail")));
+
+			const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandMeleeSocket");
+			if (HandSocket)
+			{
+				HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+				Character->SetWeaponType(EquippedWeapon->WeaponType);
+			}
+			EquippedWeapon->SetOwner(Character);
+			break;
 		}
-		Character->SetWeaponType(EquippedWeapon->WeaponType);
 	}
-	EquippedWeapon->SetOwner(Character);
-	if(Cast<ARangeWeapon>(EquippedWeapon))
-	{
-		ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
-		/*Character->GetCharacterMovement()->MaxWalkSpeed = RangeWeapon->GetRifleWalkSpeed();*/
-		RangeWeapon->SetHUDAmmo();
-		if(CarriedAmmoMap.Contains(RangeWeapon->WeaponType))
-		{
-			CarriedAmmo = CarriedAmmoMap[RangeWeapon->WeaponType];
-		}
-		else
-		{
-			CarriedAmmo = 0;
-		}
-		Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
-		if (Controller)
-		{
-			Controller->SetHUDCarriedAmmo(CarriedAmmo);
-		}
-	}
+	
 	if (EquippedWeapon->EquipSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(

@@ -67,6 +67,8 @@ void ARangeWeapon::PlayEquipMontage()
 		Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Slide))
 	{
 		AnimInstance->Montage_Play(EquipAnimMontage, 1.f);
+		FName SectionName = FName("EquipRange");
+		AnimInstance->Montage_JumpToSection(SectionName, EquipAnimMontage);
 		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_EquipWeapon);
 		if (GEngine)
 		{
@@ -84,6 +86,8 @@ void ARangeWeapon::PlayUnEquipMontage()
 		Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Slide))
 	{
 		AnimInstance->Montage_Play(UnequipAnimMontage, 1.f);
+		FName SectionName = FName("UnEquipRange");
+		AnimInstance->Montage_JumpToSection(SectionName, UnequipAnimMontage);
 		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_UnEquipWeapon);
 		if (GEngine)
 		{
