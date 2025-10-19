@@ -42,6 +42,7 @@ void APickup::BeginPlay()
 			OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APickup::OnSphereOverlap);
 			OverlapSphere->OnComponentEndOverlap.AddDynamic(this, &APickup::OnSphereEndOverlap);
 		}
+		InteractWidget->SetVisibility(false);
 	}
 	
 }

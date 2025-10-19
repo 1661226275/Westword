@@ -13,12 +13,28 @@ AHealthPickup::AHealthPickup()
 void AHealthPickup::Interact(APawn* User)
 {
 	//播放交互动画
+	//交互效果，只在服务器上调用
+	InteractEffect(User);
 	
 }
 
 void AHealthPickup::InteractEffect(APawn* User)
 {
-	//用于动画通知
+	//交互效果，只在服务器上调用
+	ServerInteractEffect(User);
+}
+
+void AHealthPickup::ServerInteractEffect_Implementation(APawn* User)
+{
+	ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(User);
+	if(CowBoyCharacter)
+	{
+		UBuffeComponent* Buff = CowBoyCharacter->GetBuffComponent();
+		if(Buff)
+		{
+			Buff->Heal(HealthAmount, HealingTime);
+		}
+	}
 }
 
 

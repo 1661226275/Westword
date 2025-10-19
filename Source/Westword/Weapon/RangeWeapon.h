@@ -40,7 +40,9 @@ private:
 
 	virtual void OnRep_Owner() override;
 
+
 public:
+
 
 	// ¿ª»ðÃÉÌ«Ææ
 	UPROPERTY(EditAnywhere)
@@ -61,6 +63,8 @@ public:
 
 	//Ð¶ÏÂÎäÆ÷
 	virtual void PlayUnEquipMontage() override;
+
+	virtual EWeaponType GetWeaponType() override { return WeaponType; }
 
 	UPROPERTY(EditAnywhere, Category = "CrossHair")
 	class UTexture2D* CrosshairsCenter;
@@ -84,10 +88,11 @@ public:
 	
 	void SetHUDAmmo();
 
-	bool CanFire() { return Ammo > 0; }
+	virtual bool CanAttack() override { return Ammo > 0; }
 
 	int32 GetAmmo() const { return Ammo; }
 	int32 GetMagCapacity() const { return MagCapacity; }
 
 	void AddAmmo(int32 AmmoToAdd);
+
 };

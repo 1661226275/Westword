@@ -24,6 +24,8 @@ public:
 	//拾取界面显示设置
 	void SetPickUpWidgetVisibility(bool bIsVisible) { if (PickUpWeight) PickUpWeight->SetVisibility(bIsVisible); }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void Attack();
+	virtual bool CanAttack();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -76,6 +78,7 @@ public:
     // 武器类型
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Properties")
     EWeaponType WeaponType;
+	virtual EWeaponType GetWeaponType() { return WeaponType; }
 
 	// 装备/卸下蒙太奇
 	UPROPERTY(EditAnywhere, Category = "Animation")

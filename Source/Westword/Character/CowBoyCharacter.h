@@ -17,102 +17,84 @@ class WESTWORD_API ACowBoyCharacter : public ACharacter, public IInteractWithCro
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	ACowBoyCharacter();
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayingMantogeState(EPlayingMantoge NewState) { PlayingMantogeState = NewState; }
 	UFUNCTION(BlueprintCallable)
 	void SetWeaponType(EWeaponType NewType) { WeaponType = NewType; }
-
-	//网络复制函数
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void SetForWardInput(float num) { ForwardInput = num; }
+	void SetRightInput(float num) { RightInput = num; }
 
 	//重叠武器设置函数,这个函数只会在服务器上被调用
 	void SetOverLapWeapon(AWeaponBase* Weapon);
 	void SetOverLapInteractActor(class APickup* Actor);
 
-	virtual void PostInitializeComponents() override;
+	
 
-	UFUNCTION(BlueprintCallable)
-	UCombatComponent* GetCombatComponent() const { return Combat; }
+	
 
 	float GetForwardInput() const { return ForwardInput; }
-	void SetForWardInput(float num) { ForwardInput = num; }
 	float GetRightInput() const { return RightInput; }
-	void SetRightInput(float num) { RightInput = num; }
+	float GetAOPitch() const { return AO_Pitch; }
+	UFUNCTION(BlueprintCallable)
+	UCombatComponent* GetCombatComponent() const { return Combat; }
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetWeapon(int index) const { return WeaponSolts[index]; }
-
 	bool IsAiming() { return Combat && Combat->Player_State == ECharacterState::CharacterState_Aim; }
-
 	void AimOffset(float DeltaTime);
 
-	float GetAOPitch() const { return AO_Pitch; }
+	
 
 	void Elim();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MultCastElim();
-
 	//复活请求
 	void RequestRespawn();
 	//复活
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRespawn();
+	void UpdateHUDHealth();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void MoveForward(float Value);
-
 	void MoveRight(float Value);
-
 	void Turn(float Value);
-
 	void LookUp(float Value);
-	
+	void ActivateSkill1();
+	void ActivateSkill2();
 	virtual void Jump() override;
-
 	void Slide();
-
 	UFUNCTION(Server, Reliable)
 	void ServerSlide();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastSlide();
-
 	void StartSprint();
 	void EndSprint();
-
 	void EquipRangeWeaponBottonPressed();
 	UFUNCTION(Server, Reliable)
 	void ServerEquipRangeWeapon();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastEquipRangeWeapon();
 
 
 	void PickUpBottonPressed();
-
 	void AimBottonPressed();
 	void AimBottonReleased();
-
-	void FireBottonPressed();
-	void FireBottonReleased();
-
+	void AttackBottonPressed();
+	void AttackBottonReleased();
 	void ReloadBottonPressed();
-
 	void PlayHitReactMontage();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
-	void UpdateHUDHealth();
 	//Poll for any relevant classes and initialize our HUD
 	void PollInit();
 
@@ -190,6 +172,9 @@ private:
 	bool bShootHead = false;
 
 public:	
+
+	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	EPlayingMantoge PlayingMantogeState = EPlayingMantoge::PlayingMantoge_Blank;
 
@@ -214,8 +199,10 @@ public:
 
 	float GetHealth() const { return Health; }
 	float GetMaxHealth() const { return MaxHealth; }
+	void SetHealth(float NewHealth) { Health = NewHealth; }
 
 	class ACowBoyPlayerState* CowBoyPlayerState;
+	UBuffeComponent* GetBuffComponent() const { return Buff; }
 };
 
 

@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "Weapon/WeaponBase.h"
 #include "Character/CowBoyCharacter.h"
 #include "PlayerController/CowBoyPlayerController.h"
@@ -102,6 +103,16 @@ void AWeaponBase::PlayEquipMontage()
 void AWeaponBase::PlayUnEquipMontage()
 {
 
+}
+
+void AWeaponBase::Attack()
+{
+
+}
+
+bool AWeaponBase::CanAttack()
+{
+	return true;
 }
 
 void AWeaponBase::SetWeaponState(EWeaponState NewState)

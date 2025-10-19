@@ -72,7 +72,58 @@ void ACowBoyCharacter::PostInitializeComponents()
 	if (Buff)
 	{
 		Buff->Character = this;
+		Buff->SetInitialBaseSpeed(GetCharacterMovement()->MaxWalkSpeed);
+		Buff->SetInitialJumpZVelocity(GetCharacterMovement()->JumpZVelocity);
 	}
+}
+
+// Called when the game starts or when spawned
+void ACowBoyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	//生成武器
+	if (HasAuthority() && WeaponClass)
+	{
+		WeaponSolts[0] = GetWorld()->SpawnActor<ARangeWeapon>(WeaponClass);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No WeaponClass")));
+	}
+
+	if (WeaponSolts[0])
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[0]->GetName()));
+		}
+		const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName("HolsterSocket");
+		if (HolsterSocket)
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Get HolsterSocket")));
+			}
+			HolsterSocket->AttachActor(WeaponSolts[0], GetMesh());
+			WeaponSolts[0]->SetOwner(this);
+			WeaponSolts[0]->SetWeaponState(EWeaponState::EWS_PickUp);
+		}
+	}
+
+	UpdateHUDHealth();
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ACowBoyCharacter::ReceiveDamage);
+	}
+}
+
+
+void ACowBoyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	AimOffset(DeltaTime);
+	HideCharacterIfCharacterClose();
+	PollInit();
 }
 
 void ACowBoyCharacter::SetOverLapWeapon(AWeaponBase* Weapon)
@@ -170,8 +221,13 @@ void ACowBoyCharacter::HideCharacterIfCharacterClose()
 
 void ACowBoyCharacter::OnRep_Health(float LastHealth)
 {
-	PlayHitReactMontage();
+	
 	UpdateHUDHealth();
+	if (Health < LastHealth)
+	{
+		PlayHitReactMontage();
+	}
+	
 }
 
 void ACowBoyCharacter::PlayDieMontage()
@@ -309,54 +365,7 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 
 
 
-// Called when the game starts or when spawned
-void ACowBoyCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	//生成武器
-	if (HasAuthority() && WeaponClass)
-	{
-		WeaponSolts[0] = GetWorld()->SpawnActor<ARangeWeapon>(WeaponClass);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("No WeaponClass")));
-	}
 
-	if (WeaponSolts[0])
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[0]->GetName()));
-		}
-		const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName("HolsterSocket");
-		if (HolsterSocket)
-		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Get HolsterSocket")));
-			}
-			HolsterSocket->AttachActor(WeaponSolts[0], GetMesh());
-			WeaponSolts[0]->SetOwner(this);
-			WeaponSolts[0]->SetWeaponState(EWeaponState::EWS_PickUp);
-		}
-	}
-
-	UpdateHUDHealth();
-	if (HasAuthority())
-	{
-		OnTakeAnyDamage.AddDynamic(this, &ACowBoyCharacter::ReceiveDamage);
-	}
-}
-
-
-void ACowBoyCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	AimOffset(DeltaTime);
-	HideCharacterIfCharacterClose();
-	PollInit();
-}
 
 // Called to bind functionality to input
 void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -370,8 +379,8 @@ void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ACowBoyCharacter::PickUpBottonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ACowBoyCharacter::AimBottonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ACowBoyCharacter::AimBottonReleased);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ACowBoyCharacter::FireBottonPressed);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ACowBoyCharacter::FireBottonReleased);
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ACowBoyCharacter::AttackBottonPressed);
+	PlayerInputComponent->BindAction("Attack", IE_Released, this, &ACowBoyCharacter::AttackBottonReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ACowBoyCharacter::ReloadBottonPressed);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACowBoyCharacter::MoveForward);
@@ -413,6 +422,12 @@ void ACowBoyCharacter::Turn(float Value)
 void ACowBoyCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
+}
+void ACowBoyCharacter::ActivateSkill1()
+{
+}
+void ACowBoyCharacter::ActivateSkill2()
+{
 }
 //下面的动作将会涉及到状态更新
 void ACowBoyCharacter::Jump()
@@ -467,7 +482,7 @@ void ACowBoyCharacter::ServerEquipRangeWeapon_Implementation()
 
 void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
 {
-	//装备武器,分四种情况判断
+	//装备远程武器,分四种情况判断
 	//1.远程武器槽有武器，且现在空手状态，装备武器
 	//2.远程武器槽有武器，且现在持有远程武器，收起远程武器
 	//3.远程武器槽有武器，且现在持有近战武器，收起近战武器再装备远程武器
@@ -509,19 +524,19 @@ void ACowBoyCharacter::AimBottonReleased()
 	}
 }
 
-void ACowBoyCharacter::FireBottonPressed()
+void ACowBoyCharacter::AttackBottonPressed()
 {
 	if (Combat)
 	{
-		Combat->FireBottonPressed(true);
+		Combat->AttackBottonPressed(true);
 	}
 }
 
-void ACowBoyCharacter::FireBottonReleased()
+void ACowBoyCharacter::AttackBottonReleased()
 {
 	if (Combat)
 	{
-		Combat->FireBottonPressed(false);
+		Combat->AttackBottonPressed(false);
 	}
 }
 

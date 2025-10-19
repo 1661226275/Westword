@@ -117,6 +117,8 @@ void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
 	SetHUDAmmo();
 }
 
+
+
 void ARangeWeapon::SpendRound()
 {
 	--Ammo;
@@ -142,3 +144,5 @@ void ARangeWeapon::OnRep_Owner()
 	}
 	
 }
+
+

@@ -14,6 +14,7 @@
 
 
 
+
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
 {
@@ -119,49 +120,89 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	}
 }
 
-void UCombatComponent::FireBottonPressed(bool bPressed)
+void UCombatComponent::AttackBottonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
-	
-	if(CanFire())
-	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
-
-		if (EquippedWeapon)
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
+		FString::Printf(TEXT("Overlap Actor Name is %s"),
+			*UEnum::GetDisplayValueAsText(EquippedWeapon->GetWeaponType()).ToString()));
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
 		{
-			CrosshairShootingFactor = 2.f;
+			if (CanAttack())
+			{
+				ServerAttack();
+
+				if (EquippedWeapon)
+				{
+					CrosshairShootingFactor = 2.f;
+				}
+			}
+			break;
 		}
+	case EWeaponType::WeaponType_Melee:
+		{
+			if (CanAttack()) ServerAttack();
+			break;
+		}
+
 	}
 
+
+	
+
 }
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+void UCombatComponent::ServerAttack_Implementation()
 {
-	MultiCastFire(TraceHitTarget);
-}
-void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	//开火条件判断：
-	//1.持有武器
-	//2.PlayingMantogeState为空闲或者滑铲
 	if (EquippedWeapon == nullptr) return;
 	if (Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Blank && Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Slide) return;
-	ARangeWeapon* RangerWeapon = Cast<ARangeWeapon>(EquippedWeapon);
-	if (RangerWeapon)
-	{
-		//瞄准状态
-		if (Character->IsAiming())
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
 		{
-			RangerWeapon->PlayFireMontage(true);
+			FHitResult HitResult;
+			TraceUnderCrosshairs(HitResult);
+			MultiCastAttack(HitResult.ImpactPoint);
+			break;
 		}
-		else
+	case EWeaponType::WeaponType_Melee:
 		{
-			RangerWeapon->PlayFireMontage(false);
+			Cast<AMeleeWeaponBase>(EquippedWeapon)->HandleAttack();
+			MultiCastAttack(FVector(0, 0, 0));
+			break;
 		}
-		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
-		RangerWeapon->Fire(TraceHitTarget);
 	}
+	
+}
+void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
+		{
+			ARangeWeapon* RangerWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+			if (RangerWeapon)
+			{
+				//瞄准状态
+				if (Character->IsAiming())
+				{
+					RangerWeapon->PlayFireMontage(true);
+				}
+				else
+				{
+					RangerWeapon->PlayFireMontage(false);
+				}
+				Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
+				RangerWeapon->Fire(TraceHitTarget);
+			}
+			break;
+		}
+	case EWeaponType::WeaponType_Melee:
+		{
+			AMeleeWeaponBase* MeleeWeapon = Cast<AMeleeWeaponBase>(EquippedWeapon);
+			Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
+			MeleeWeapon->PlayAttackMontage();
+		}
+	}
+	
 
 }
 
@@ -382,15 +423,22 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 
 }
 
-bool UCombatComponent::CanFire()
+bool UCombatComponent::CanAttack()
 {
 	if (EquippedWeapon == nullptr) return false;
-	if(Cast<ARangeWeapon>(EquippedWeapon))
-	{
-		ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
-		return RangeWeapon->CanFire();
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
+		if (Cast<ARangeWeapon>(EquippedWeapon))
+		{
+			ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+			return RangeWeapon->CanAttack();
+		}
+		break;
+	case EWeaponType::WeaponType_Melee:
+		return true;
 	}
-	return true;
+	
+	return false;
 }
 
 

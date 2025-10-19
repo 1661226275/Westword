@@ -26,5 +26,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	float HealingTime = 5.f;
 
+
+
+	UFUNCTION(Server,Reliable)
+	void ServerInteractEffect(APawn* User);
+
 	
 };

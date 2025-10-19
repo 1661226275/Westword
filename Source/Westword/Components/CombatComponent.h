@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
+#include "Weapon/MeleeWeaponBase.h"
 #include "Westword/HUD/CowBoyHUD.h"
 #include "DataType/EnumData.h"
 #include "CombatComponent.generated.h"
@@ -41,15 +42,15 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void FireBottonPressed(bool bPressed);
+	void AttackBottonPressed(bool bPressed);
 
 	bool bFireButtonPressed = false;
 
 	UFUNCTION(Server, Reliable)
-	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
+	void ServerAttack();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCastFire(const FVector_NetQuantize& TraceHitTarget);
+	void MultiCastAttack(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
@@ -118,7 +119,7 @@ public:
 
 	FVector GetHitTarget() const {return HitTarget;}
 
-	bool CanFire();
+	bool CanAttack();
 
 	bool IsAlive() const { return Player_State == ECharacterState::CharacterState_Death; }
 };
