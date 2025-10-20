@@ -18,6 +18,7 @@ public:
 	virtual void ActivateSkill(class APawn* Character) override;
 	virtual void SkillEffectFunction(class APawn* Character) override;
 	virtual void DeactivateSkill(class APawn* Character) override;
+	void FinishCooldown();
 	
 protected:
 
@@ -36,4 +37,6 @@ private:
 	float BaseSpeedBuff =1600.f ;
 	UPROPERTY(EditAnywhere)
 	float JumpZVelocityBuff = 4000.f;
+
+
 };

@@ -4,6 +4,8 @@
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 #include "CharacterOverlay.h"
+#include "CharacterDeBuffWidget.h"
+#include "DamageWidget.h"
 #include "Announcement.h"
 
 
@@ -23,6 +25,54 @@ void ACowBoyHUD::AddCharacterOverlay()
 		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
 
+	}
+}
+
+void ACowBoyHUD::AddCharacterDeBuffWidget()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if (PlayerController && CharacterDeBuffClass && CharacterDeBuffWidget == nullptr)
+	{
+		CharacterDeBuffWidget = CreateWidget<UCharacterDeBuffWidget>(PlayerController, CharacterDeBuffClass);
+		CharacterDeBuffWidget->AddToViewport();
+
+	}
+}
+
+void ACowBoyHUD::RemoveCharacterDeBuffWidget()
+{
+	if (CharacterDeBuffWidget)
+	{
+		CharacterDeBuffWidget->RemoveFromParent();
+		CharacterDeBuffWidget = nullptr;
+	}
+}
+
+void ACowBoyHUD::AddCharacterHurtHUD()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if (PlayerController && CharacterDamageClass)
+	{
+		CharacterHurtHUD = CreateWidget<UDamageWidget>(PlayerController, CharacterDamageClass);
+		CharacterHurtHUD->AddToViewport();
+
+	}
+}
+
+void ACowBoyHUD::RemoveCharacterHurtHUD()
+{
+	if (CharacterHurtHUD)
+	{
+		CharacterHurtHUD->RemoveFromParent();
+		CharacterHurtHUD = nullptr;
+	}
+}
+
+void ACowBoyHUD::AddDamageEffect()
+{
+	if (CharacterHurtHUD)
+	{
+		CharacterHurtHUD->PlayDamageEffect();
 	}
 }
 

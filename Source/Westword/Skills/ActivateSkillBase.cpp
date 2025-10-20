@@ -8,7 +8,8 @@
 AActivateSkillBase::AActivateSkillBase()
 {
  	
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
 }
 

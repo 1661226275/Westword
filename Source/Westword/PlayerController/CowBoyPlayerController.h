@@ -16,11 +16,18 @@ class WESTWORD_API ACowBoyPlayerController : public APlayerController
 
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDSan(float San, float MaxSan);
 	void SetHUDScore(float Score);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
+	void SetCharacterDeBuffHUD();
+	void DestoryCharacterDeBuffHUD();
+	void SetCharacterHurtHUD();
+	void DestoryCharacterHurtHUD();
+	void AddDamageEffect();
+
 	void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -78,9 +85,16 @@ private:
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
-	bool bInitializedCharacterOverlay = false;
+
+
+	
 
 	float HUDHealth;
+	bool bInitializedHealth = false;
 	float HUDMaxHealth;
+	float HUDSan;
+	bool bInitializedSan = false;
+	float HUDMaxSan;
 	float HUDScore;
+	bool bInitializedScore = false;
 };

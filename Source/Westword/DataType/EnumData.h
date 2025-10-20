@@ -37,6 +37,7 @@ enum class EPlayingMantoge : uint8
 	PlayingMantoge_Attack,
 	PlayingMantoge_Reload,
 	PlayingMantoge_DeBuff,
+	PlayingMantoge_Hit,
 	PlayingMantoge_Death,
 	PlayingMantoge_UsingAbility,
 

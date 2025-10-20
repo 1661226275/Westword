@@ -22,6 +22,12 @@ public:
 	class UTextBlock* HealthText;
 
 	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SansBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* SansText;
+
+	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreAmount;
 
 	UPROPERTY(meta = (BindWidget))

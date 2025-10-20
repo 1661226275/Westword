@@ -144,7 +144,13 @@ void ARangeWeapon::OnRep_Owner()
 	}
 	else
 	{
-		SetHUDAmmo();
+		EWeaponState OutState;
+		GetWeaponState(OutState);
+		if (OutState == EWeaponState::EWS_Equipped)
+		{
+			SetHUDAmmo();
+		}
+		
 	}
 	
 }

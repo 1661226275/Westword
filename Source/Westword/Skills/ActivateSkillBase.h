@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* DeactivateSkillAnimation;
 
+	bool bIsCooldown = false;
+	FTimerHandle TimerHandle_Cooldown;
+
 private:
 	
 	

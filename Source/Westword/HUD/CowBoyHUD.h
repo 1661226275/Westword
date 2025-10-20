@@ -34,6 +34,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<UUserWidget> CharacterDeBuffClass;
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<UUserWidget> CharacterDamageClass;
 
 	UPROPERTY(EditAnywhere, Category = "Announcements")
 	TSubclassOf<UUserWidget> AnnouncementClass;
@@ -46,6 +50,15 @@ public:
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 	void AddCharacterOverlay();
+	UPROPERTY()
+	class UCharacterDeBuffWidget* CharacterDeBuffWidget;
+	void AddCharacterDeBuffWidget();
+	void RemoveCharacterDeBuffWidget();
+	UPROPERTY()
+	class UDamageWidget* CharacterHurtHUD;
+	void AddCharacterHurtHUD();
+	void RemoveCharacterHurtHUD();
+	void AddDamageEffect();
 protected:
 	virtual void BeginPlay() override;
 	

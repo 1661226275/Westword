@@ -326,6 +326,7 @@ void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::WeaponType_Gun, StatrtingRoundAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::WeaponType_Melee, 0);
+	CarriedAmmoMap.Emplace(EWeaponType::WeaponType_None,0);
 
 }
 
@@ -397,11 +398,15 @@ void UCombatComponent::UpdateAmmoValues()
 }
 void UCombatComponent::FinishReloading()
 {
-	Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
-	if(Character->HasAuthority())
+	if (Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Reload)
 	{
-		UpdateAmmoValues();
+		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
+		if (Character->HasAuthority())
+		{
+			UpdateAmmoValues();
+		}
 	}
+
 }
 void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 {

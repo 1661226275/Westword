@@ -10,6 +10,8 @@
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/CombatComponent.h"
 #include "Components/BuffeComponent.h"
+#include "Skills/ActivateSkillBase.h"
+#include "Skills/BeastInstinct.h"
 #include "CowBoyCharacter.generated.h"
 
 UCLASS(Blueprintable, BlueprintType)
@@ -60,6 +62,19 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRespawn();
 	void UpdateHUDHealth();
+	void UpdateHUDSan();
+
+	/*
+	* 腐化值控制
+	*/
+	void HandleSanChange(float DeltaSan);
+	UFUNCTION(Server, Reliable)
+	void ServerHandleSanChange(float DeltaSan);
+	//腐化值是一个复制变量，因此只需要在server上改变，server的表现单独控制，客户端通过onrep函数控制
+	void ReceiveSanDamage();
+	void StartDecreaseSan();
+	void DecreaseSan();
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -99,11 +114,22 @@ protected:
 	void AttackBottonReleased();
 	void ReloadBottonPressed();
 	void PlayHitReactMontage();
+	void PlayDeBuffReactMontage();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	//Poll for any relevant classes and initialize our HUD
 	void PollInit();
+
+	/*
+	* 技能系统
+	*/
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<class AActivateSkillBase>>SkillsArray;
+
+	class ABeastInstinct* BeastInstinct;
+
+
 
 private:
 	UPROPERTY(VisibleAnyWhere, Category = Camera)
@@ -122,6 +148,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Animation)
 	class UAnimMontage* RespawnMontage;
+
+	UPROPERTY(EditAnywhere, Category = Animation)
+	class UAnimMontage* DeBuffReactMontage;
 
 
 	
@@ -173,6 +202,29 @@ private:
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
 
+	/*
+	player Sans
+	*/
+	UPROPERTY(EditAnywhere, Category = "Player State")
+	float MaxSan = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_San, VisibleAnywhere, Category = "Player State")
+	float San = 0.f;
+
+	UFUNCTION()
+	void OnRep_San(float LastSan);
+
+	UPROPERTY(EditAnywhere, Category = "Player State")
+	float SanDamage = 5.f;
+
+	FTimerHandle TimerHandle_SanDecreaseDelay; // 用于30秒后开始降低的延迟
+	FTimerHandle TimerHandle_SanDecrease;      // 用于持续降低腐化值的定时器
+	FTimerHandle TimerHandle_SanDamage;        // 用于超过阈值后周期性掉血的定时器
+
+	/*
+	* 
+	*/
+
 	TMap<int32, FName> EquipWeaponSocket;
 
 	class ACowBoyPlayerController* CowBoyController;
@@ -217,6 +269,8 @@ public:
 
 	float GetHealth() const { return Health; }
 	float GetMaxHealth() const { return MaxHealth; }
+	float GetSan() const { return San; }
+	float GetMaxSan() const { return MaxSan; }
 	void SetHealth(float NewHealth) { Health = NewHealth; }
 	void SetMaxWalkSpeed(float NewSpeed) { MaxWalkSpeed = NewSpeed; }
 	void SetMaxSprintSpeed(float NewSpeed) { MaxSprintSpeed = NewSpeed; }

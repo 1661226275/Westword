@@ -114,6 +114,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
 
+	
+
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
 

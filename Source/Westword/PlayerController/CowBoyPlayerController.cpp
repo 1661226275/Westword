@@ -48,9 +48,27 @@ void ACowBoyPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	}
 	else
 	{
-		bInitializedCharacterOverlay = true;
+		bInitializedHealth = true;
 		HUDHealth = Health;
 		HUDMaxHealth = MaxHealth;
+	}
+}
+
+void ACowBoyPlayerController::SetHUDSan(float San, float MaxSan)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		const float SanPercent = San / MaxSan;
+		CowboyHUD->CharacterOverlay->SansBar->SetPercent(SanPercent);
+		FString SansText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(San), FMath::CeilToInt(MaxSan));
+		CowboyHUD->CharacterOverlay->SansText->SetText(FText::FromString(SansText));
+	}
+	else
+	{
+		bInitializedSan = true;
+		HUDSan = San;
+		HUDMaxSan = MaxSan;
 	}
 }
 
@@ -62,7 +80,7 @@ void ACowBoyPlayerController::SetHUDScore(float Score)
 		CowboyHUD->CharacterOverlay->ScoreAmount->SetText(FText::AsNumber(FMath::CeilToInt(Score)));
 	}
 	{
-		bInitializedCharacterOverlay = true;
+		bInitializedScore = true;
 		HUDScore = Score;
 	}
 }
@@ -109,6 +127,39 @@ void ACowBoyPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 	}
 }
 
+void ACowBoyPlayerController::SetCharacterDeBuffHUD()
+{
+	if (CowboyHUD)
+	{
+		CowboyHUD->AddCharacterDeBuffWidget();
+	}
+}
+
+void ACowBoyPlayerController::DestoryCharacterDeBuffHUD()
+{
+	if (CowboyHUD)
+	{
+		CowboyHUD->RemoveCharacterDeBuffWidget();
+	}
+}
+
+void ACowBoyPlayerController::SetCharacterHurtHUD()
+{
+}
+
+void ACowBoyPlayerController::DestoryCharacterHurtHUD()
+{
+}
+
+void ACowBoyPlayerController::AddDamageEffect()
+{
+	if (CowboyHUD)
+	{
+		CowboyHUD->AddDamageEffect();
+	}
+	
+}
+
 void ACowBoyPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -116,6 +167,7 @@ void ACowBoyPlayerController::OnPossess(APawn* InPawn)
 	if (CowBoyCharacter)
 	{
 		SetHUDHealth(CowBoyCharacter->GetHealth(), CowBoyCharacter->GetMaxHealth());
+		SetHUDSan(CowBoyCharacter->GetSan(), CowBoyCharacter->GetMaxSan());
 	}
 }
 
@@ -157,8 +209,9 @@ void ACowBoyPlayerController::PollInit()
 			CharacterOverlay = CowboyHUD->CharacterOverlay;
 			if (CharacterOverlay)
 			{
-				SetHUDHealth(HUDHealth, HUDMaxHealth);
-				SetHUDScore(HUDScore);
+				if (bInitializedHealth) SetHUDHealth(HUDHealth, HUDMaxHealth);
+				if (bInitializedSan)SetHUDSan(HUDSan, HUDMaxSan);
+				if (bInitializedScore)SetHUDScore(HUDScore);
 			}
 		}
 	}
@@ -278,6 +331,7 @@ void ACowBoyPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 	if (CowboyHUD)
 	{
 		CowboyHUD->AddCharacterOverlay();
+		CowboyHUD->AddCharacterHurtHUD();
 		if (CowboyHUD->Announcement)
 		{
 			CowboyHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
@@ -304,6 +358,7 @@ void ACowBoyPlayerController::HandleCooldown()
 	if (CowboyHUD)
 	{
 		CowboyHUD->CharacterOverlay->RemoveFromParent();
+		CowboyHUD->RemoveCharacterHurtHUD();
 		CowboyHUD->AddAnnouncement();
 		
 	}

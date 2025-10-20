@@ -17,6 +17,7 @@
 #include "GameMode/WestWorldGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pickups/Pickup.h"
+#include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerState/CowBoyPlayerState.h"
 
@@ -49,6 +50,7 @@ ACowBoyCharacter::ACowBoyCharacter()
 	WeaponSolts.Init(nullptr, 2);
 	EquipWeaponSocket.Add(0, FName("HolsterSocket"));
 	EquipWeaponSocket.Add(1, FName("HolsterMeleeSocket"));
+	SkillsArray.Init(nullptr, 2);
 
 }
 
@@ -59,6 +61,7 @@ void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapInteractActor, COND_OwnerOnly);
 	DOREPLIFETIME(ACowBoyCharacter, WeaponSolts);
 	DOREPLIFETIME(ACowBoyCharacter, Health);
+	DOREPLIFETIME(ACowBoyCharacter, San);
 }
 
 void ACowBoyCharacter::PostInitializeComponents()
@@ -96,14 +99,17 @@ void ACowBoyCharacter::BeginPlay()
 				if (HolsterSocket)
 				{
 					HolsterSocket->AttachActor(WeaponSolts[i], GetMesh());
-					WeaponSolts[i]->SetOwner(this);
 					WeaponSolts[i]->SetWeaponState(EWeaponState::EWS_PickUp);
+					WeaponSolts[i]->SetOwner(this);
+					
 				}
 			}
 		}
+		BeastInstinct = GetWorld()->SpawnActor<ABeastInstinct>(SkillsArray[0]);
 	}
 
 	UpdateHUDHealth();
+	UpdateHUDSan();
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ACowBoyCharacter::ReceiveDamage);
@@ -214,16 +220,6 @@ void ACowBoyCharacter::HideCharacterIfCharacterClose()
 	}
 }
 
-void ACowBoyCharacter::OnRep_Health(float LastHealth)
-{
-	
-	UpdateHUDHealth();
-	if (Health < LastHealth)
-	{
-		PlayHitReactMontage();
-	}
-	
-}
 
 void ACowBoyCharacter::PlayDieMontage()
 {
@@ -260,6 +256,17 @@ void ACowBoyCharacter::UpdateHUDHealth()
 	}
 }
 
+void ACowBoyCharacter::UpdateHUDSan()
+{
+	CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+	if (CowBoyController)
+	{
+		CowBoyController->SetHUDSan(San, MaxSan);
+	}
+}
+
+
+
 void ACowBoyCharacter::PollInit()
 {
 	if(CowBoyPlayerState==nullptr)
@@ -271,6 +278,8 @@ void ACowBoyCharacter::PollInit()
 		}
 	}
 }
+
+
 
 void ACowBoyCharacter::AimOffset(float DeltaTime)
 {
@@ -333,12 +342,49 @@ void ACowBoyCharacter::MultCastElim_Implementation()
 
 void ACowBoyCharacter::PlayHitReactMontage()
 {
-	if (Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("PlayHitReactMontage"));
+	if (Combat == nullptr) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HitReactMontage)
 	{
 		AnimInstance->Montage_Play(HitReactMontage);
-		FName SectionName = FName("FromFront");
+		FName SectionName;
+		if (Combat->EquippedWeapon)
+		{
+			switch (Combat->EquippedWeapon->GetWeaponType())
+			{
+			case EWeaponType::WeaponType_Gun:
+			{
+				SectionName = FName("HitFront");
+				break;
+			}
+			case EWeaponType::WeaponType_Melee:
+			{
+				SectionName = FName("EquipMeleeHit");
+				break;
+			}
+			
+			}
+			
+		}
+		else
+		{
+			SectionName = FName("DefaultHit");
+		}
+		AnimInstance->Montage_JumpToSection(SectionName);
+		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Hit);
+		
+	}
+}
+
+void ACowBoyCharacter::PlayDeBuffReactMontage()
+{
+	if (Combat == nullptr || Combat->Player_State == ECharacterState::CharacterState_Death) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeBuffReactMontage)
+	{
+		AnimInstance->Montage_Play(DeBuffReactMontage);
+		FName SectionName = FName("DeBuffReact");
 		AnimInstance->Montage_JumpToSection(SectionName);
 		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_DeBuff);
 	}
@@ -348,7 +394,15 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 {
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
+	//to do 
+	//根据伤害的类型去更新腐化值
+
 	PlayHitReactMontage();
+	CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+	if (CowBoyController)
+	{
+		CowBoyController->AddDamageEffect();
+	}
 
 	if (Health <= 0.f)
 	{
@@ -361,8 +415,125 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 	}
 }
 
+void ACowBoyCharacter::OnRep_Health(float LastHealth)
+{
+
+	UpdateHUDHealth();
+	if (Health < LastHealth)
+	{
+		PlayHitReactMontage();
+	}
+
+}
 
 
+
+void ACowBoyCharacter::HandleSanChange(float DeltaSan)
+{
+	ServerHandleSanChange(DeltaSan);
+}
+
+void ACowBoyCharacter::ServerHandleSanChange_Implementation(float DeltaSan)
+{
+	if (DeltaSan>0)
+	{
+		// 腐化值升高
+		// 显示HUD特效（服务器本地玩家）
+		if (IsLocallyControlled())
+		{
+			San = FMath::Clamp(San + DeltaSan, 0, MaxSan);
+			UpdateHUDSan();
+			CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+			if (CowBoyController)
+			{
+				CowBoyController->SetCharacterDeBuffHUD();
+			}
+		}
+		// 重置30秒后腐化值开始降低的计时器
+		GetWorldTimerManager().ClearTimer(TimerHandle_SanDecreaseDelay);
+		GetWorldTimerManager().SetTimer(TimerHandle_SanDecreaseDelay, this, &ACowBoyCharacter::StartDecreaseSan, 30.0f, false);
+
+		// 如果超过阈值，启动周期性掉血（服务器）
+		if (San >= 70 && !GetWorldTimerManager().IsTimerActive(TimerHandle_SanDamage))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("TimerHandle_SanDamage"));
+			GetWorldTimerManager().SetTimer(TimerHandle_SanDamage, this, &ACowBoyCharacter::ReceiveSanDamage, 5.0f, true);
+		}
+
+		// 如果正在自动降低，则停止自动降低
+		if (GetWorldTimerManager().IsTimerActive(TimerHandle_SanDecrease))
+		{
+			GetWorldTimerManager().ClearTimer(TimerHandle_SanDecrease);
+		}
+	}
+	else if (DeltaSan<0)
+	{
+		// 腐化值降低
+		San = FMath::Clamp(San + DeltaSan, 0, MaxSan);
+		// 如果降低到阈值以下，停止周期性掉血
+		if (San < 70)
+		{
+			if (HasAuthority())
+			{
+				GetWorldTimerManager().ClearTimer(TimerHandle_SanDamage);
+			}
+		}
+	}
+}
+
+void ACowBoyCharacter::ReceiveSanDamage()
+{
+	// 造成伤害，并表现异常
+	TakeDamage(SanDamage, FDamageEvent(), GetController(), this);
+}
+
+void ACowBoyCharacter::StartDecreaseSan()
+{
+	// 服务器上开始每秒钟降低腐化值
+	if (HasAuthority())
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_SanDecrease, this, &ACowBoyCharacter::DecreaseSan, 5.0f, true);
+	}
+}
+
+void ACowBoyCharacter::DecreaseSan()
+{
+	if (San > 0)
+	{
+		HandleSanChange(-5.f);
+		// 在服务器上修改复制变量，会自动复制到客户端，但服务器不会调用OnRep。所以如果服务器需要手动更新HUD
+		UpdateHUDSan();
+
+		// 如果腐化值降为0，停止定时器
+		if (San <= 0)
+		{
+			GetWorldTimerManager().ClearTimer(TimerHandle_SanDecrease);
+		}
+	}
+}
+
+void ACowBoyCharacter::OnRep_San(float LastSan)
+{
+	UpdateHUDSan();
+	if (San > 0)
+	{
+		CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+		if (CowBoyController)
+		{
+			CowBoyController->SetCharacterDeBuffHUD();
+		}
+	}
+	else
+	{
+		CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+		if (CowBoyController)
+		{
+			CowBoyController->DestoryCharacterDeBuffHUD();
+		}
+	}
+	
+
+}
 
 
 // Called to bind functionality to input
@@ -381,6 +552,7 @@ void ACowBoyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ACowBoyCharacter::AttackBottonPressed);
 	PlayerInputComponent->BindAction("Attack", IE_Released, this, &ACowBoyCharacter::AttackBottonReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ACowBoyCharacter::ReloadBottonPressed);
+	PlayerInputComponent->BindAction("Skill2", IE_Pressed, this, &ACowBoyCharacter::ActivateSkill2);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACowBoyCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACowBoyCharacter::MoveRight);
@@ -427,6 +599,11 @@ void ACowBoyCharacter::ActivateSkill1()
 }
 void ACowBoyCharacter::ActivateSkill2()
 {
+	if (PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Blank)
+	{
+		BeastInstinct->ActivateSkill(this);
+	}
+	
 }
 //下面的动作将会涉及到状态更新
 void ACowBoyCharacter::Jump()

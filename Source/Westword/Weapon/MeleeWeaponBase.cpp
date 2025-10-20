@@ -17,7 +17,11 @@ void AMeleeWeaponBase::EndAttack()
     {
         ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(GetOwner());
         Character->GetWorldTimerManager().ClearTimer(AttackTimeHandle);
-        Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
+        if (Character->PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Attack)
+        {
+            Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Blank);
+        }
+        
     }
 
 }
