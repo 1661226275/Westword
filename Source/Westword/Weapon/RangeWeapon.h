@@ -87,6 +87,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	void SetHUDAmmo();
+	virtual void SetWeaponHUDVisible(bool bIsVisible) override;
 
 	virtual bool CanAttack() override { return Ammo > 0; }
 

@@ -657,6 +657,7 @@ void ACowBoyCharacter::EquipRangeWeaponBottonPressed()
 
 void ACowBoyCharacter::ServerEquipRangeWeapon_Implementation()
 {
+	if (GetWorldTimerManager().IsTimerActive(EquipDelayTimerHandle)) return;
 	if (Combat && WeaponSolts[0])
 	{
 		MultiCastEquipRangeWeapon();
@@ -679,6 +680,27 @@ void ACowBoyCharacter::MultiCastEquipRangeWeapon_Implementation()
 			WeaponSolts[0]->PlayEquipMontage();
 			Combat->EquipWeapon(WeaponSolts[0]);
 		}
+		//情况2
+		else if (WeaponSolts[0] && WeaponType == EWeaponType::WeaponType_Gun)
+		{
+			WeaponSolts[0]->PlayUnEquipMontage();
+			Combat->UnEquipWeapon();
+		}
+		//情况3
+		else if (WeaponSolts[0] && WeaponType == EWeaponType::WeaponType_Melee)
+		{
+			WeaponSolts[1]->PlayUnEquipMontage();
+			Combat->UnEquipWeapon();
+			//延迟，等待蒙太奇播放完毕
+			float DelayTime = 1.5f; 
+			GetWorld()->GetTimerManager().SetTimer(
+				EquipDelayTimerHandle,
+				this,
+				&ACowBoyCharacter::OnMeleeWeaponEquipDelayCompleted,
+				DelayTime,
+				false 
+			);
+		}
 
 	}
 }
@@ -690,6 +712,7 @@ void ACowBoyCharacter::EquipMeleeWeaponBottonPressed()
 
 void ACowBoyCharacter::ServerEquipMeleeWeapon_Implementation()
 {
+	if (GetWorldTimerManager().IsTimerActive(EquipDelayTimerHandle)) return;
 	if (Combat && WeaponSolts[1])
 	{
 		MultiCastEquipMeleeWeapon();
@@ -712,10 +735,51 @@ void ACowBoyCharacter::MultiCastEquipMeleeWeapon_Implementation()
 			Combat->EquipWeapon(WeaponSolts[1]);
 			
 		}
+		//情况2
+		else if (WeaponSolts[1] && WeaponType == EWeaponType::WeaponType_Melee)
+		{
+			WeaponSolts[1]->PlayUnEquipMontage();
+			Combat->UnEquipWeapon();
 
+		}
+		else if (WeaponSolts[1] && WeaponType == EWeaponType::WeaponType_Gun)
+		{
+			WeaponSolts[0]->PlayUnEquipMontage();
+			Combat->UnEquipWeapon();
+			float DelayTime = 1.f; // 根据蒙太奇长度调整
+			GetWorld()->GetTimerManager().SetTimer(
+				EquipDelayTimerHandle,
+				this,
+				&ACowBoyCharacter::OnRangeWeaponEquipDelayCompleted,
+				DelayTime,
+				false 
+			);
+
+		}
 	}
 }
 
+void ACowBoyCharacter::OnRangeWeaponEquipDelayCompleted()
+{
+	if (WeaponSolts[1] && Combat)
+	{
+		WeaponSolts[1]->PlayEquipMontage();
+		Combat->EquipWeapon(WeaponSolts[1]);
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(EquipDelayTimerHandle);
+}
+
+void ACowBoyCharacter::OnMeleeWeaponEquipDelayCompleted()
+{
+	if (WeaponSolts[0] && Combat)
+	{
+		WeaponSolts[0]->PlayEquipMontage();
+		Combat->EquipWeapon(WeaponSolts[0]);
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(EquipDelayTimerHandle);
+}
 void ACowBoyCharacter::PickUpBottonPressed()
 {
 	if (OverLapInteractActor)

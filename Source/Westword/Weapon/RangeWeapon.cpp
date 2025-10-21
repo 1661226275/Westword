@@ -115,6 +115,16 @@ void ARangeWeapon::SetHUDAmmo()
 	}
 }
 
+void ARangeWeapon::SetWeaponHUDVisible(bool bIsVisible)
+{
+	CowBoyOwnerCharacter = CowBoyOwnerCharacter == nullptr ? Cast<ACowBoyCharacter>(GetOwner()) : CowBoyOwnerCharacter;
+	if (CowBoyOwnerCharacter)
+	{
+		CowBoyOwnerController = CowBoyOwnerController == nullptr ? Cast<ACowBoyPlayerController>(CowBoyOwnerCharacter->GetController()) : CowBoyOwnerController;
+	}
+}
+
+
 void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
 {
 	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);

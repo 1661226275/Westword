@@ -161,6 +161,10 @@ private:
 	UPROPERTY( EditAnywhere, Category = Weapon)
 	TArray<TSubclassOf<AWeaponBase>> WeaponClass;
 
+	FTimerHandle EquipDelayTimerHandle;
+	void OnRangeWeaponEquipDelayCompleted();
+	void OnMeleeWeaponEquipDelayCompleted();
+
 	//ÍøÂç¸´ÖÆ±äÁ¿
 	UPROPERTY(ReplicatedUsing = RepNotify_OverLapWeapon)
 	class AWeaponBase* OverLapWeapon;

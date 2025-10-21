@@ -115,6 +115,10 @@ bool AWeaponBase::CanAttack()
 	return true;
 }
 
+void AWeaponBase::SetWeaponHUDVisible(bool bIsVisible)
+{
+}
+
 void AWeaponBase::SetWeaponState(EWeaponState NewState)
 {
 	WeaponState = NewState;

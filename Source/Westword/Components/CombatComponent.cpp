@@ -428,7 +428,7 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 			{
 				ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(EquippedWeapon);
 				/*Character->GetCharacterMovement()->MaxWalkSpeed = RangeWeapon->GetRifleWalkSpeed();*/
-				RangeWeapon->SetHUDAmmo();
+				Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
 				if (CarriedAmmoMap.Contains(RangeWeapon->WeaponType))
 				{
 					CarriedAmmo = CarriedAmmoMap[RangeWeapon->WeaponType];
@@ -437,9 +437,10 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 				{
 					CarriedAmmo = 0;
 				}
-				Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
 				if (Controller)
 				{
+					Controller->SetRangeWeaponHUDVisible(true);
+					RangeWeapon->SetHUDAmmo();
 					Controller->SetHUDCarriedAmmo(CarriedAmmo);
 				}
 			}
@@ -456,6 +457,8 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 				Character->SetWeaponType(EquippedWeapon->WeaponType);
 			}
 			EquippedWeapon->SetOwner(Character);
+			Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+			Controller->SetMeleeWeaponHUDVisible(true);
 			break;
 		}
 	}
@@ -469,6 +472,52 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 		);
 	}
 
+}
+
+void UCombatComponent::UnEquipWeapon()
+{
+	if (Character == nullptr || EquippedWeapon == nullptr) return;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_PickUp);
+	Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
+	switch (EquippedWeapon->GetWeaponType())
+	{
+		case EWeaponType::WeaponType_Gun:
+		{
+			const USkeletalMeshSocket* HolsterSocket = Character->GetMesh()->GetSocketByName("HolsterSocket");
+			if (HolsterSocket)
+			{
+				HolsterSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+				Character->SetWeaponType(EWeaponType::WeaponType_None);
+			}
+		
+			
+			if(Controller) Controller->SetRangeWeaponHUDVisible(false);
+			break;
+		}
+
+		case EWeaponType::WeaponType_Melee:
+		{
+
+			const USkeletalMeshSocket* HolsterSocket = Character->GetMesh()->GetSocketByName("HolsterMeleeSocket");
+			if (HolsterSocket)
+			{
+				HolsterSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+				Character->SetWeaponType(EWeaponType::WeaponType_None);
+			}
+			if (Controller) Controller->SetMeleeWeaponHUDVisible(false);
+			break;
+		}
+	}
+
+	if (EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			EquippedWeapon->EquipSound,
+			Character->GetActorLocation()
+		);
+	}
+	EquippedWeapon = nullptr;
 }
 
 bool UCombatComponent::CanAttack()

@@ -7,6 +7,7 @@
 #include "HUD/Announcement.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/CanvasPanel.h"
 #include "Character/CowBoyCharacter.h"
 #include "GameMode/WestWorldGameMode.h"
 #include "Kismet/GameplayStatics.h"
@@ -127,6 +128,37 @@ void ACowBoyPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 	}
 }
 
+void ACowBoyPlayerController::SetRangeWeaponHUDVisible(bool bIsVisible)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		if (bIsVisible)
+		{
+			CowboyHUD->CharacterOverlay->RangeWeaponCanvas->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			CowboyHUD->CharacterOverlay->RangeWeaponCanvas->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+}
+void ACowBoyPlayerController::SetMeleeWeaponHUDVisible(bool bIsVisible)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		if (bIsVisible)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("Set MeleeHud"));
+			CowboyHUD->CharacterOverlay->MeleeWeaponCanvas->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			CowboyHUD->CharacterOverlay->MeleeWeaponCanvas->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+}
 void ACowBoyPlayerController::SetCharacterDeBuffHUD()
 {
 	if (CowboyHUD)

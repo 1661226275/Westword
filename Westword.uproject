@@ -38,6 +38,10 @@
 		{
 			"Name": "SteamSockets",
 			"Enabled": true
+		},
+		{
+			"Name": "test",
+			"Enabled": false
 		}
 	]
 }

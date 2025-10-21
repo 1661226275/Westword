@@ -26,6 +26,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Attack();
 	virtual bool CanAttack();
+	virtual void SetWeaponHUDVisible(bool bIsVisible);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

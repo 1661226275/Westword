@@ -30,12 +30,18 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreAmount;
 
+	UPROPERTY(BlueprintReadWrite,meta = (BindWidget))
+	class UCanvasPanel* RangeWeaponCanvas;
+
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* WeaponAmmoAmount;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CarriedAmmoAmount;
 
+	UPROPERTY(BlueprintReadWrite,meta = (BindWidget))
+	class UCanvasPanel* MeleeWeaponCanvas;
+	
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MatchCountdown;
 

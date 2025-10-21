@@ -113,6 +113,8 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
+	UFUNCTION(BlueprintCallable)
+	void UnEquipWeapon();
 
 	
 

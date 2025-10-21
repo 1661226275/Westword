@@ -17,12 +17,20 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	float StandardMaxWalkSpeed = 100.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	float StandardMaxRunSpeed = 500.f;
+
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	class ACowBoyCharacter* CowBoyCharacter;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float Speed;
+
+
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float ForwardInput;
@@ -58,6 +66,8 @@ private:
 	float AO_Pitch;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	FTransform RightHandIndexSocketTransform;
+
+
 
 	FRotator TargetRotation;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))

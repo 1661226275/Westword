@@ -22,6 +22,8 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
+	void SetRangeWeaponHUDVisible(bool bIsVisible);
+	void SetMeleeWeaponHUDVisible(bool bIsVisible);
 	void SetCharacterDeBuffHUD();
 	void DestoryCharacterDeBuffHUD();
 	void SetCharacterHurtHUD();
