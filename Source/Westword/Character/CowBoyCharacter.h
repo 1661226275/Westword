@@ -74,7 +74,8 @@ public:
 	void ReceiveSanDamage();
 	void StartDecreaseSan();
 	void DecreaseSan();
-
+	UPROPERTY()
+	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
 
 protected:
 	// Called when the game starts or when spawned
@@ -127,7 +128,63 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<class AActivateSkillBase>>SkillsArray;
 
+
+	UPROPERTY(Replicated)
 	class ABeastInstinct* BeastInstinct;
+
+	/*
+	* 碰撞盒，用于服务器回滚
+	*/
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* head;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* pelvis;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* spine_02;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* spine_03;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* upperarm_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* upperarm_r;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* lowerarm_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* lowerarm_r;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* hand_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* hand_r;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* thigh_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* thigh_r;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* calf_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* calf_r;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* foot_l;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* foot_r;
+
+	
+
 
 
 
@@ -179,11 +236,17 @@ private:
 	UFUNCTION()
 	void RepNotify_OverLapInteractActor(class APickup* LastActor);
 
+	/*
+	* components
+	*/
 	UPROPERTY(VisibleAnywhere)
 	class UCombatComponent* Combat;
 
 	UPROPERTY(VisibleAnywhere)
 	class UBuffeComponent* Buff;
+	UPROPERTY(VisibleAnywhere)
+	class ULagCompenstionComponent* LagCompensation;
+
 	float ForwardInput;
 	float RightInput;
 
