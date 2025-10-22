@@ -118,8 +118,13 @@ public:
 
 	
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerStateChange, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerState")
 	ECharacterState Player_State = ECharacterState::CharacterState_Norm;
+
+
+	bool bAimButtonPressed = false;
+	UFUNCTION()
+	void OnRep_PlayerStateChange();
 
 	FVector GetHitTarget() const {return HitTarget;}
 	UFUNCTION(BlueprintCallable)

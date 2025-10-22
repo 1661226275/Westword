@@ -144,19 +144,21 @@ void UCombatComponent::AttackBottonPressed(bool bPressed)
 {
 	if (EquippedWeapon == nullptr) return;
 	bFireButtonPressed = bPressed;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
-		FString::Printf(TEXT("Overlap Actor Name is %s"),
-			*UEnum::GetDisplayValueAsText(EquippedWeapon->GetWeaponType()).ToString()));
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
-	switch (EquippedWeapon->GetWeaponType()) {
-	case EWeaponType::WeaponType_Gun:
+	if (bFireButtonPressed)
+	{
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		switch (EquippedWeapon->GetWeaponType()) {
+		case EWeaponType::WeaponType_Gun:
 		{
 			if (CanAttack())
 			{
-				
+
 				ServerAttack(HitResult.ImpactPoint);
-				/*if(!Character->HasAuthority()) LocalAttack(HitResult.ImpactPoint);*/
+				if (!Character->HasAuthority())
+				{
+					LocalAttack(HitResult.ImpactPoint);
+				}
 
 				if (EquippedWeapon)
 				{
@@ -165,20 +167,57 @@ void UCombatComponent::AttackBottonPressed(bool bPressed)
 			}
 			break;
 		}
-	case EWeaponType::WeaponType_Melee:
+		case EWeaponType::WeaponType_Melee:
 		{
-			if (CanAttack()) ServerAttack(FVector(0,0,0));
+			if (CanAttack())
+			{
+				ServerAttack(FVector(0, 0, 0));
+				if (!Character->HasAuthority())
+				{
+					LocalAttack(FVector(0, 0, 0));
+				
+				}
+			}
 			break;
 		}
 
+		}
 	}
 
+}
 
+void UCombatComponent::ServerAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (EquippedWeapon == nullptr) return;
+	if (Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Blank && Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Slide) return;
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
+		{
+			
+			MultiCastAttack(TraceHitTarget);
+			break;
+		}
+	case EWeaponType::WeaponType_Melee:
+		{
+			Cast<AMeleeWeaponBase>(EquippedWeapon)->HandleAttack();
+			MultiCastAttack(FVector(0, 0, 0));
+			break;
+		}
+	}
+	
+}
+void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (Character && Character->IsLocallyControlled()&&!Character->HasAuthority()) return;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString("MultiCastAttack"));
+	LocalAttack(TraceHitTarget);
 	
 
 }
+
 void UCombatComponent::LocalAttack(const FVector_NetQuantize& TraceHitTarget)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("local att"));
 	switch (EquippedWeapon->GetWeaponType()) {
 	case EWeaponType::WeaponType_Gun:
 	{
@@ -207,35 +246,6 @@ void UCombatComponent::LocalAttack(const FVector_NetQuantize& TraceHitTarget)
 	}
 	}
 }
-void UCombatComponent::ServerAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	if (EquippedWeapon == nullptr) return;
-	if (Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Blank && Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Slide) return;
-	switch (EquippedWeapon->GetWeaponType()) {
-	case EWeaponType::WeaponType_Gun:
-		{
-			
-			MultiCastAttack(TraceHitTarget);
-			break;
-		}
-	case EWeaponType::WeaponType_Melee:
-		{
-			Cast<AMeleeWeaponBase>(EquippedWeapon)->HandleAttack();
-			MultiCastAttack(FVector(0, 0, 0));
-			break;
-		}
-	}
-	
-}
-void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	/*if (Character && !Character->HasAuthority()) return;*/
-	LocalAttack(TraceHitTarget);
-	
-
-}
-
-
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
@@ -402,7 +412,7 @@ void UCombatComponent::UpdateAmmoValues()
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 	}
 
-	Cast<ARangeWeapon>(EquippedWeapon)->AddAmmo(-ReloadAmount);
+	Cast<ARangeWeapon>(EquippedWeapon)->AddAmmo(ReloadAmount);
 }
 void UCombatComponent::FinishReloading()
 {
@@ -530,6 +540,14 @@ void UCombatComponent::UnEquipWeapon()
 		);
 	}
 	EquippedWeapon = nullptr;
+}
+
+void UCombatComponent::OnRep_PlayerStateChange()
+{
+	if (Character && Character->IsLocallyControlled())
+	{
+		
+	}
 }
 
 bool UCombatComponent::CanAttack()

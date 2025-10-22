@@ -27,18 +27,28 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ZoomInterSpeed = 20.f;
 
-	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
+	UPROPERTY(EditAnywhere)
 	int32 Ammo;
+
+	UFUNCTION(Client,Reliable)
+	void ClientUpdateAmmo(int32 ServerAmmo);
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(int32 AmmoToAdd);
 
 	void SpendRound();
 
-	UFUNCTION()
-	void OnRep_Ammo();
+
 
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
 
+	//未处理的server requests数量
+	//客户端开火后进行增加，收到回复后减少
+	int32 Sequence;
+
 	virtual void OnRep_Owner() override;
+
+	
 
 
 public:

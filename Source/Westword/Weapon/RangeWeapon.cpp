@@ -21,6 +21,7 @@ void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 
 void ARangeWeapon::Fire(const FVector& HitTarget)
 {
+	SpendRound();
 	if (!HasAuthority()) return;
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 	if (ProjectileClass == nullptr)return;
@@ -36,10 +37,9 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 		SpawnParams.Instigator = InstigatorPawn;
 		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 	}
-	if (HasAuthority())
-	{
-		SpendRound();
-	}
+
+		
+	
 	
 }
 
@@ -103,7 +103,7 @@ void ARangeWeapon::PlayUnEquipMontage()
 void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ARangeWeapon, Ammo);
+	
 }
 
 void ARangeWeapon::SetHUDAmmo()
@@ -129,11 +129,10 @@ void ARangeWeapon::SetWeaponHUDVisible(bool bIsVisible)
 }
 
 
-void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
-{
-	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
-	SetHUDAmmo();
-}
+
+
+
+
 
 
 
@@ -141,12 +140,41 @@ void ARangeWeapon::SpendRound()
 {
 	--Ammo;
 	SetHUDAmmo();
+	if (HasAuthority())
+	{
+		ClientUpdateAmmo(Ammo);
+	}
+	else
+	{
+		++Sequence;
+	}
 }
 
-void ARangeWeapon::OnRep_Ammo()
+
+void ARangeWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 {
+	if (HasAuthority()) return;
+	Ammo = ServerAmmo;
+	--Sequence;
+	Ammo -= Sequence;
 	SetHUDAmmo();
 }
+
+void ARangeWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+
+}
+
+
+void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	if (HasAuthority()) return;
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
+	ClientAddAmmo(AmmoToAdd);
+}
+
 
 void ARangeWeapon::OnRep_Owner()
 {
@@ -168,5 +196,7 @@ void ARangeWeapon::OnRep_Owner()
 	}
 	
 }
+
+
 
 

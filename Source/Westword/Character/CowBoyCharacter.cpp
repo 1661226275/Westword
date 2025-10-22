@@ -601,7 +601,14 @@ void ACowBoyCharacter::ActivateSkill2()
 {
 	if (PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Blank)
 	{
-		BeastInstinct->ActivateSkill(this);
+		if (BeastInstinct)
+		{
+			BeastInstinct->ActivateSkill(this);
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NOSkill2"));
+		}
+		
 	}
 	
 }
@@ -793,6 +800,10 @@ void ACowBoyCharacter::AimBottonPressed()
 	if (Combat)
 	{
 		Combat->SetPlayerState(ECharacterState::CharacterState_Aim);
+		if (IsLocallyControlled())
+		{
+			Combat->bAimButtonPressed = true;
+		}
 	}
 }
 
@@ -801,6 +812,10 @@ void ACowBoyCharacter::AimBottonReleased()
 	if (Combat)
 	{
 		Combat->SetPlayerState(ECharacterState::CharacterState_Norm);
+		if (IsLocallyControlled())
+		{
+			Combat->bAimButtonPressed = false;
+		}
 	}
 }
 
