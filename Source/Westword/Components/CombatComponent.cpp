@@ -147,12 +147,16 @@ void UCombatComponent::AttackBottonPressed(bool bPressed)
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
 		FString::Printf(TEXT("Overlap Actor Name is %s"),
 			*UEnum::GetDisplayValueAsText(EquippedWeapon->GetWeaponType()).ToString()));
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
 	switch (EquippedWeapon->GetWeaponType()) {
 	case EWeaponType::WeaponType_Gun:
 		{
 			if (CanAttack())
 			{
-				ServerAttack();
+				
+				ServerAttack(HitResult.ImpactPoint);
+				/*if(!Character->HasAuthority()) LocalAttack(HitResult.ImpactPoint);*/
 
 				if (EquippedWeapon)
 				{
@@ -163,7 +167,7 @@ void UCombatComponent::AttackBottonPressed(bool bPressed)
 		}
 	case EWeaponType::WeaponType_Melee:
 		{
-			if (CanAttack()) ServerAttack();
+			if (CanAttack()) ServerAttack(FVector(0,0,0));
 			break;
 		}
 
@@ -173,16 +177,45 @@ void UCombatComponent::AttackBottonPressed(bool bPressed)
 	
 
 }
-void UCombatComponent::ServerAttack_Implementation()
+void UCombatComponent::LocalAttack(const FVector_NetQuantize& TraceHitTarget)
+{
+	switch (EquippedWeapon->GetWeaponType()) {
+	case EWeaponType::WeaponType_Gun:
+	{
+		ARangeWeapon* RangerWeapon = Cast<ARangeWeapon>(EquippedWeapon);
+		if (RangerWeapon)
+		{
+			//Ãé×¼×´Ì¬
+			if (Character->IsAiming())
+			{
+				RangerWeapon->PlayFireMontage(true);
+			}
+			else
+			{
+				RangerWeapon->PlayFireMontage(false);
+			}
+			Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
+			RangerWeapon->Fire(TraceHitTarget);
+		}
+		break;
+	}
+	case EWeaponType::WeaponType_Melee:
+	{
+		AMeleeWeaponBase* MeleeWeapon = Cast<AMeleeWeaponBase>(EquippedWeapon);
+		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
+		MeleeWeapon->PlayAttackMontage();
+	}
+	}
+}
+void UCombatComponent::ServerAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr) return;
 	if (Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Blank && Character->PlayingMantogeState != EPlayingMantoge::PlayingMantoge_Slide) return;
 	switch (EquippedWeapon->GetWeaponType()) {
 	case EWeaponType::WeaponType_Gun:
 		{
-			FHitResult HitResult;
-			TraceUnderCrosshairs(HitResult);
-			MultiCastAttack(HitResult.ImpactPoint);
+			
+			MultiCastAttack(TraceHitTarget);
 			break;
 		}
 	case EWeaponType::WeaponType_Melee:
@@ -196,33 +229,8 @@ void UCombatComponent::ServerAttack_Implementation()
 }
 void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	switch (EquippedWeapon->GetWeaponType()) {
-	case EWeaponType::WeaponType_Gun:
-		{
-			ARangeWeapon* RangerWeapon = Cast<ARangeWeapon>(EquippedWeapon);
-			if (RangerWeapon)
-			{
-				//Ãé×¼×´Ì¬
-				if (Character->IsAiming())
-				{
-					RangerWeapon->PlayFireMontage(true);
-				}
-				else
-				{
-					RangerWeapon->PlayFireMontage(false);
-				}
-				Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
-				RangerWeapon->Fire(TraceHitTarget);
-			}
-			break;
-		}
-	case EWeaponType::WeaponType_Melee:
-		{
-			AMeleeWeaponBase* MeleeWeapon = Cast<AMeleeWeaponBase>(EquippedWeapon);
-			Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Attack);
-			MeleeWeapon->PlayAttackMontage();
-		}
-	}
+	/*if (Character && !Character->HasAuthority()) return;*/
+	LocalAttack(TraceHitTarget);
 	
 
 }
@@ -268,7 +276,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		}
 		if (TraceHitResult.bBlockingHit)
 		{
-			//DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 16.f, 12, FColor::Red, false);
+			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 16.f, 12, FColor::Red, false);
 		}
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
@@ -458,7 +466,11 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 			}
 			EquippedWeapon->SetOwner(Character);
 			Controller = Controller == nullptr ? Cast<ACowBoyPlayerController>(Character->GetController()) : Controller;
-			Controller->SetMeleeWeaponHUDVisible(true);
+			if (Controller)
+			{
+				Controller->SetMeleeWeaponHUDVisible(true);
+			}
+			
 			break;
 		}
 	}

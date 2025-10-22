@@ -45,9 +45,9 @@ protected:
 	void AttackBottonPressed(bool bPressed);
 
 	bool bFireButtonPressed = false;
-
+	void LocalAttack(const FVector_NetQuantize& TraceHitTarget);
 	UFUNCTION(Server, Reliable)
-	void ServerAttack();
+	void ServerAttack(const FVector_NetQuantize& TraceHitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastAttack(const FVector_NetQuantize& TraceHitTarget);

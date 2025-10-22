@@ -36,7 +36,11 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 		SpawnParams.Instigator = InstigatorPawn;
 		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 	}
-	SpendRound();
+	if (HasAuthority())
+	{
+		SpendRound();
+	}
+	
 }
 
 void ARangeWeapon::PlayReloadMontage()

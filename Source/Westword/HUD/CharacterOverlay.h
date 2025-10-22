@@ -45,4 +45,10 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MatchCountdown;
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* HighPingImage;
+
+	UPROPERTY(meta = (BindWidgetAnim),Transient)
+	UWidgetAnimation* HighPingAnimation;
+
 };

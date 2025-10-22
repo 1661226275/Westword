@@ -11,6 +11,8 @@
 #include "Character/CowBoyCharacter.h"
 #include "GameMode/WestWorldGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/Image.h"
+#include "PlayerState/CowBoyPlayerState.h"
 
 void ACowBoyPlayerController::BeginPlay()
 {
@@ -28,8 +30,44 @@ void ACowBoyPlayerController::Tick(float DeltaTime)
 	SetHUDTime();
 	CheckTimeSync(DeltaTime);
 	PollInit();
+	CheckPing(DeltaTime);
+	
 
 }
+
+void ACowBoyPlayerController::CheckPing(float DeltaTime)
+{
+	HighPingRunningTime += DeltaTime;
+	if (HighPingRunningTime > CheckPingFrequency)
+	{
+		PlayerState = PlayerState == nullptr ? TObjectPtr<APlayerState>(GetPlayerState<APlayerState>()) : PlayerState;
+		if (PlayerState)
+		{
+			if (PlayerState->GetCompressedPing() * 4 > HightPingThreshold)
+			{
+				HighPingWarning();
+
+				PingAnimationRunningTime = 0;
+			}
+		}
+		HighPingRunningTime = 0.f;
+	}
+	bool bHighPingAnimationPlaying =
+		CowboyHUD && CowboyHUD->CharacterOverlay &&
+		CowboyHUD->CharacterOverlay->HighPingAnimation &&
+		CowboyHUD->CharacterOverlay->IsAnimationPlaying(CowboyHUD->CharacterOverlay->HighPingAnimation);
+	if (bHighPingAnimationPlaying)
+	{
+		PingAnimationRunningTime += DeltaTime;
+		if (PingAnimationRunningTime > HighPingDuration)
+		{
+			StopHighPingWarning();
+		}
+	}
+}
+
+
+
 
 void ACowBoyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -259,6 +297,35 @@ void ACowBoyPlayerController::CheckTimeSync(float DeltaTime)
 	}
 }
 
+void ACowBoyPlayerController::HighPingWarning()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay &&
+		CowboyHUD->CharacterOverlay->HighPingAnimation &&
+		CowboyHUD->CharacterOverlay->HighPingImage)
+	{
+		CowboyHUD->CharacterOverlay->HighPingImage->SetOpacity(1.f);
+		CowboyHUD->CharacterOverlay->PlayAnimation(CowboyHUD->CharacterOverlay->HighPingAnimation,
+			0.f,
+			5);
+	}
+}
+
+void ACowBoyPlayerController::StopHighPingWarning()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay &&
+		CowboyHUD->CharacterOverlay->HighPingAnimation &&
+		CowboyHUD->CharacterOverlay->HighPingImage)
+	{
+		CowboyHUD->CharacterOverlay->HighPingImage->SetOpacity(0.f);
+		if (CowboyHUD->CharacterOverlay->IsAnimationPlaying(CowboyHUD->CharacterOverlay->HighPingAnimation))
+		{
+			CowboyHUD->CharacterOverlay->StopAnimation(CowboyHUD->CharacterOverlay->HighPingAnimation);
+		}
+		
+	}
+}
 
 
 

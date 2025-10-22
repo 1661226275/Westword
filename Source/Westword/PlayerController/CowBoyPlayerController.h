@@ -69,7 +69,9 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void ClientJoinMidGame(FName State, float Warmup, float Match, float StartingTime);
 
-
+	void HighPingWarning();
+	void StopHighPingWarning();
+	void CheckPing(float DeltaTime);
 
 private:
 	class ACowBoyHUD* CowboyHUD;
@@ -99,4 +101,16 @@ private:
 	float HUDMaxSan;
 	float HUDScore;
 	bool bInitializedScore = false;
+
+	float HighPingRunningTime = 0.f;
+	UPROPERTY(EditAnywhere)
+	float HighPingDuration = 5.f;
+
+	UPROPERTY(EditAnywhere)
+	float CheckPingFrequency = 20.f;
+
+	UPROPERTY(EditAnywhere)
+	float HightPingThreshold = 50.f;
+
+	float PingAnimationRunningTime = 0.f;
 };

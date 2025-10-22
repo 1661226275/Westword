@@ -68,8 +68,6 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		ShootRotation = UKismetMathLibrary::RInterpTo(ShootRotation, TargetRotation, DeltaSeconds, 15.f);
 		FTransform MuzzleTipTransform = CowBoyCharacter->GetWeapon(0)->GetWeaponMesh()->GetSocketTransform(FName("FireSocket"), ERelativeTransformSpace::RTS_World);
 		FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
-		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
-		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), CowBoyCharacter->GetCombatComponent()->GetHitTarget(), FColor::Orange);
 
 	}
 }

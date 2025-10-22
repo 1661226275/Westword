@@ -60,6 +60,7 @@ void AMeleeWeaponBase::MeleeHitChannelTrace()
         DamageEnd = SocketTransform.GetLocation();
 	}
     // 设置跟踪参数
+    /*ECC_MeleeTraceChannel*/
     ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_MeleeTraceChannel); // 使用合适的碰撞通道
     TArray<AActor*> ActorsToIgnore;
 
@@ -131,17 +132,14 @@ void AMeleeWeaponBase::MeleeHitChannelTrace()
 
 void AMeleeWeaponBase::HandleAttack()
 {
-    if (Cast<ACowBoyCharacter>(GetOwner()))
-    {
         LastHitActor = nullptr;
         //在服务器上设置定时器调用MeleeHitChannelTrace，每隔0.3秒调用一次，通过动画通知调用EndAttack取消定时器
-        Cast<ACowBoyCharacter>(GetOwner())->GetWorldTimerManager().SetTimer(
+        GetWorldTimerManager().SetTimer(
             AttackTimeHandle,
             this, &AMeleeWeaponBase::MeleeHitChannelTrace,
             0.05f,
             true
         );
-    }
     
     
 }
