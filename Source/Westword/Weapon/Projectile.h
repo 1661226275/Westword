@@ -15,6 +15,16 @@ public:
 	AProjectile();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
+	/*
+	* used with server-side rewind
+	*/
+	bool bUseServerSideRewind = false;
+	FVector_NetQuantize TraceStart;
+	FVector_NetQuantize100 InitialVelocity;
+	UPROPERTY(EditAnywhere)
+	float InitialSpeed = 15000;
+	float Damage = 30;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -27,10 +37,8 @@ protected:
 		FVector NormalImpulse,
 		const FHitResult& Hit
 	);
-	UPROPERTY(EditAnywhere ,Category = "Projectile")
-	float Damage = 30;
 
-private:
+
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* CollisionBox;
 
@@ -48,11 +56,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* ImpactSound;
 
+private:
+
+
 	
 
 
 public:	
 
-	
+	float GetDamage()const { return Damage; }
 
 };

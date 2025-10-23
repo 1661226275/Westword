@@ -27,6 +27,7 @@ public:
 	virtual void Attack();
 	virtual bool CanAttack();
 	virtual void SetWeaponHUDVisible(bool bIsVisible);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,6 +53,9 @@ protected:
 	UPROPERTY()
 	class ACowBoyPlayerController* CowBoyOwnerController;
 
+	UPROPERTY( EditAnywhere)
+	bool bUseServerSidleRewind;
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UStaticMeshComponent* WeaponMesh;
@@ -103,8 +107,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void GetWeaponState(EWeaponState& OutState) { OutState = WeaponState; }
-
 	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
-
 	void Dropped();
 };

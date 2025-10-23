@@ -14,9 +14,14 @@ class WESTWORD_API ARangeWeapon : public AWeaponBase
 {
 	GENERATED_BODY()
 
+
 private:
 	UPROPERTY(EditAnyWhere)
 	TSubclassOf<class AProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnyWhere)
+	TSubclassOf<AProjectile> ServerSideRewindProjectileClass;
+
 
 	/*
 	* Zoomed FOV while aiming
@@ -105,5 +110,6 @@ public:
 	int32 GetMagCapacity() const { return MagCapacity; }
 
 	void AddAmmo(int32 AmmoToAdd);
+
 
 };

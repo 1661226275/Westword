@@ -4,8 +4,9 @@
 #include "Character/CowBoyCharacter.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Projectile.h"
-#include "Character/CowBoyCharacter.h"
 #include "PlayerController/CowBoyPlayerController.h"
+
+
 void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 {
 	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(GetOwner());
@@ -22,11 +23,12 @@ void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 void ARangeWeapon::Fire(const FVector& HitTarget)
 {
 	SpendRound();
-	if (!HasAuthority()) return;
+	
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 	if (ProjectileClass == nullptr)return;
 	const UStaticMeshSocket* MuzzleSocket = GetWeaponMesh()->GetSocketByName("FireSocket");
-	if (MuzzleSocket)
+	UWorld* World = GetWorld();
+	if (MuzzleSocket && World)
 	{
 		FTransform SocketTransform;
 		MuzzleSocket->GetSocketTransform(SocketTransform,GetWeaponMesh());
@@ -35,12 +37,55 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = GetOwner();
 		SpawnParams.Instigator = InstigatorPawn;
-		GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
-	}
+		AProjectile* SpawnedProjectile = nullptr;
+		if (bUseServerSidleRewind)
+		{
+			if (InstigatorPawn->HasAuthority())//server
+			{
+				if (InstigatorPawn->IsLocallyControlled()) //server,host - use replicated projectile
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = false;
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,host - use replicated projectile"));
+					
+				}
+				else //server,not locally controlled spawn non-replicated projectile,ssr
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = true;
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,not locally controlled spawn non-replicated projectile,ssr"));
+				}
 
-		
-	
-	
+			}
+			else//client using ssr
+			{
+				if (InstigatorPawn->IsLocallyControlled()) //client,locallt controlled -spawn non-repliced projectile,use ssr
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = true;
+					SpawnedProjectile->TraceStart = SocketTransform.GetLocation();
+					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("client,locallt controlled -spawn non-repliced projectile,use ssr"));
+
+				}
+				else
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile->bUseServerSideRewind = false;
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("other"));
+
+				}
+			}
+		}
+		else //weapon not using ssr
+		{
+			if (InstigatorPawn->HasAuthority())
+			{
+				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+				SpawnedProjectile->bUseServerSideRewind = false;
+			}
+		}	
+	}
 }
 
 void ARangeWeapon::PlayReloadMontage()
@@ -136,6 +181,7 @@ void ARangeWeapon::SetWeaponHUDVisible(bool bIsVisible)
 
 
 
+
 void ARangeWeapon::SpendRound()
 {
 	--Ammo;
@@ -163,13 +209,13 @@ void ARangeWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 void ARangeWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
 {
 	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
-
+	SetHUDAmmo();
 }
 
 
 void ARangeWeapon::AddAmmo(int32 AmmoToAdd)
 {
-	if (HasAuthority()) return;
+	/*if (HasAuthority()) return;*/
 	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	SetHUDAmmo();
 	ClientAddAmmo(AmmoToAdd);

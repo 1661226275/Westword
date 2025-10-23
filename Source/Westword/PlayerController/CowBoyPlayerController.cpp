@@ -356,6 +356,7 @@ void ACowBoyPlayerController::ClientJoinMidGame_Implementation(FName State, floa
 void ACowBoyPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedRequest)
 {
 	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	SingleTripTime = 0.5f * RoundTripTime;
 	float CurrentServerTime = TimeServerReceivedRequest + (0.5f * RoundTripTime);
 	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
 }

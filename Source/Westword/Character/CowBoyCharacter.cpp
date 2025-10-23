@@ -138,6 +138,16 @@ ACowBoyCharacter::ACowBoyCharacter()
 	foot_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitCollisionBoxes.Add(FName("foot_r"), foot_r);
 
+	for (auto Box : HitCollisionBoxes)
+	{
+		if (Box.Value)
+		{
+			Box.Value->SetCollisionObjectType(ECC_HitBox);
+			Box.Value->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			Box.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+
+		}
+	}
 }
 
 void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -185,7 +195,13 @@ void ACowBoyCharacter::BeginPlay()
 		for (int i = 0; i<WeaponClass.Num();i++)
 		{
 			if (WeaponClass[i] == nullptr) continue;
-			WeaponSolts[i] = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass[i]);
+			AWeaponBase* Weapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass[i]);
+			//if (HasAuthority() && IsLocallyControlled())//server端玩家持有的武器
+			//{
+			//	//禁用服务器倒带
+			//	Weapon->bUseServerSidleRewind = false;
+			//}
+			WeaponSolts[i] = Weapon;
 			if (WeaponSolts[i])
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[i]->GetName()));

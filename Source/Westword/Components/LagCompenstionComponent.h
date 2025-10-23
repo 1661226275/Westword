@@ -35,7 +35,17 @@ struct FFramPackage
 
 };
 
+USTRUCT(BlueprintType)
+struct FServerSideRewindResult
+{
+	GENERATED_BODY()
 
+	UPROPERTY()
+	bool bHitConfirmed;
+
+	UPROPERTY()
+	bool bHeadShot;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class WESTWORD_API ULagCompenstionComponent : public UActorComponent
@@ -48,10 +58,69 @@ public:
 	friend class ACowBoyCharacter;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void ShowFramePackage(const FFramPackage& package, const FColor& Color);
+	FServerSideRewindResult ServerSideRewind(
+		class ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize& HitLocation,
+		float HitTime);
+	UFUNCTION(Server,Reliable)
+	void ServerScoreRequest(
+		ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize& HitLocation,
+		float HitTime,
+		class AWeaponBase* DamageCauser
+	);
+	/*
+	* Projectile
+	*/
+	FServerSideRewindResult ProjectileServerSideRewind(
+		class ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize100& InitialVelocity,
+		float HitTime
+	);
+
+	UFUNCTION(Server,Reliable)
+	void ProjectileServerScoreRequest(
+		ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize100& InitialVelocity,
+		float HitTime
+	);
+
 protected:
 
 	virtual void BeginPlay() override;
 	void SaveFramePackage(FFramPackage& Package);
+	
+	FFramPackage InterpBetweenFrames(const FFramPackage& OlderFrame, const FFramPackage& YoungerFrame, float HitTime);
+	
+	void CacheBoxPosition(ACowBoyCharacter* HitCharacter, FFramPackage& OutFramePackage);
+	void MoveBoxes(ACowBoyCharacter* HitCharacter, const FFramPackage& FramePackage);
+	void ResetHitBoxes(ACowBoyCharacter* HitCharacter, const FFramPackage& FramePackage);
+	void EnableCharacterMeshCollision(ACowBoyCharacter* CowBoyCharacter, ECollisionEnabled::Type CollisionEnableType);
+	void SaveFramePackage();
+
+	/*
+	* HitScan
+	*/
+	FServerSideRewindResult ConfirmHit(
+		const FFramPackage& Package,
+		class ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize& HitLocation);
+
+	/*
+	* Projectile
+	*/
+	FServerSideRewindResult ProjectileConfirmHit(
+		const FFramPackage& Package,
+		class ACowBoyCharacter* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize100& InitialVelocity,
+		float HitTime
+	);
 private:
 	UPROPERTY()
 	class ACowBoyCharacter* Character;
@@ -63,6 +132,8 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	float MaxRecordTime = 4.f;
+
+	FFramPackage GetFrameToCheck(ACowBoyCharacter* HitCharacter, float HitTime);
 
 public:	
 

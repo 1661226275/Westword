@@ -344,6 +344,7 @@ public:
 	bool IsSprinting() const {return bIsSprinting;}
 	class ACowBoyPlayerState* CowBoyPlayerState;
 	UBuffeComponent* GetBuffComponent() const { return Buff; }
+	ULagCompenstionComponent* GetLagCompensation() const { return LagCompensation; }
 };
 
 

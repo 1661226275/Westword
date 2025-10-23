@@ -36,6 +36,7 @@ void AWeaponBase::BeginPlay()
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
 	PickUpWeight->SetVisibility(false);
+	
 }
 
 void AWeaponBase::Tick(float DeltaTime)
@@ -48,6 +49,7 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AWeaponBase, WeaponState);
+	//DOREPLIFETIME(AWeaponBase, bUseServerSidleRewind);
 }
 
 void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

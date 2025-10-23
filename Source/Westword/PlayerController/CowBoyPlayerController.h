@@ -38,6 +38,7 @@ public:
 	virtual void ReceivedPlayer() override;
 	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
 	
+	float SingleTripTime = 0.f;
 protected:
 	virtual void BeginPlay() override;
 	void HandleMatchHasStarted(bool bTeamsMatch = false);
