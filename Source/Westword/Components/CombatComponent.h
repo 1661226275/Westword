@@ -37,6 +37,8 @@ public:
 
 	int AmountToReload();
 	
+	UFUNCTION()
+	void OnPingTooHigh(bool bPingTooHigh);
 
 protected:
 	// Called when the game starts

@@ -49,7 +49,7 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AWeaponBase, WeaponState);
-	//DOREPLIFETIME(AWeaponBase, bUseServerSidleRewind);
+	DOREPLIFETIME_CONDITION(AWeaponBase, bUseServerSidleRewind,COND_OwnerOnly);
 }
 
 void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -118,6 +118,11 @@ void AWeaponBase::SetWeaponHUDVisible(bool bIsVisible)
 {
 }
 
+void AWeaponBase::OnPingTooHigh(bool bPingTooHigh)
+{
+	bUseServerSidleRewind = !bPingTooHigh;
+}
+
 void AWeaponBase::SetWeaponState(EWeaponState NewState)
 {
 	WeaponState = NewState;
@@ -146,6 +151,15 @@ void AWeaponBase::SetWeaponState(EWeaponState NewState)
 
 void AWeaponBase::Dropped()
 {
+
+	if (CowBoyOwnerController)
+	{
+		if (IsUseServerSideRewind() && CowBoyOwnerController->HasAuthority() && !CowBoyOwnerController->HighPingDelegate.IsBound())
+		{
+			CowBoyOwnerController->HighPingDelegate.RemoveDynamic(this, &AWeaponBase::OnPingTooHigh);
+		}
+	}
+
 	SetWeaponState(EWeaponState::EWS_Drop);
 	SetOwner(nullptr);
 	SetPickUpWidgetVisibility(true);

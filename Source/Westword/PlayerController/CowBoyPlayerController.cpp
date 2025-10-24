@@ -43,11 +43,17 @@ void ACowBoyPlayerController::CheckPing(float DeltaTime)
 		PlayerState = PlayerState == nullptr ? TObjectPtr<APlayerState>(GetPlayerState<APlayerState>()) : PlayerState;
 		if (PlayerState)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerState->GetCompressedPing() * 4:%d"), PlayerState->GetCompressedPing() * 4);
 			if (PlayerState->GetCompressedPing() * 4 > HightPingThreshold)
 			{
 				HighPingWarning();
 
 				PingAnimationRunningTime = 0;
+				ServerReportPingStatus(true);
+			}
+			else
+			{
+				ServerReportPingStatus(false);
 			}
 		}
 		HighPingRunningTime = 0.f;
@@ -66,7 +72,10 @@ void ACowBoyPlayerController::CheckPing(float DeltaTime)
 	}
 }
 
-
+void ACowBoyPlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
+{
+	HighPingDelegate.Broadcast(bHighPing);
+}
 
 
 void ACowBoyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -423,6 +432,8 @@ void ACowBoyPlayerController::OnRep_MatchState()
 		HandleCooldown();
 	}
 }
+
+
 
 void ACowBoyPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 {

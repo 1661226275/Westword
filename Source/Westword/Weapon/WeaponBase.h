@@ -27,6 +27,9 @@ public:
 	virtual void Attack();
 	virtual bool CanAttack();
 	virtual void SetWeaponHUDVisible(bool bIsVisible);
+	bool IsUseServerSideRewind() const { return bUseServerSidleRewind; }
+	UFUNCTION()
+	void OnPingTooHigh(bool bPingTooHigh);
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,7 +56,7 @@ protected:
 	UPROPERTY()
 	class ACowBoyPlayerController* CowBoyOwnerController;
 
-	UPROPERTY( EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	bool bUseServerSidleRewind;
 	
 private:

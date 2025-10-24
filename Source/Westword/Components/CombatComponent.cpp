@@ -432,7 +432,7 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	switch (EquippedWeapon->GetWeaponType())
-	{
+	{ 
 		case EWeaponType::WeaponType_Gun:
 		{
 			const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName("RightHandSocket");
@@ -460,6 +460,10 @@ void UCombatComponent::EquipWeapon(AWeaponBase* WeaponToEquip)
 					Controller->SetRangeWeaponHUDVisible(true);
 					RangeWeapon->SetHUDAmmo();
 					Controller->SetHUDCarriedAmmo(CarriedAmmo);
+					if (RangeWeapon->IsUseServerSideRewind()&&Controller->HasAuthority()&&!Controller->HighPingDelegate.IsBound())
+					{
+						Controller->HighPingDelegate.AddDynamic(this, &UCombatComponent::OnPingTooHigh);
+					}
 				}
 			}
 			break;
@@ -590,3 +594,8 @@ void UCombatComponent::ServerSetPlayerState_Implementation(ECharacterState NewSt
 	Player_State = NewState;
 }
 
+
+void UCombatComponent::OnPingTooHigh(bool bPingTooHigh)
+{
+	EquippedWeapon->OnPingTooHigh(bPingTooHigh);
+}

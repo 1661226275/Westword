@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "CowBoyPlayerController.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
 /**
  * 
  */
@@ -39,6 +41,8 @@ public:
 	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
 	
 	float SingleTripTime = 0.f;
+	FHighPingDelegate HighPingDelegate;
+	
 protected:
 	virtual void BeginPlay() override;
 	void HandleMatchHasStarted(bool bTeamsMatch = false);
@@ -110,8 +114,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	float CheckPingFrequency = 20.f;
 
+	UFUNCTION(Server,Reliable)
+	void ServerReportPingStatus(bool bHighPing);
+
 	UPROPERTY(EditAnywhere)
-	float HightPingThreshold = 50.f;
+	float HightPingThreshold = 200.f;
 
 	float PingAnimationRunningTime = 0.f;
 };
