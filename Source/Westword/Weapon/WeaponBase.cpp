@@ -31,10 +31,10 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverlap);
 	PickUpWeight->SetVisibility(false);
 	
 }
