@@ -50,7 +50,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 				return;
 			}
 			ACowBoyCharacter* HitCharacter = Cast<ACowBoyCharacter>(OtherActor);
-			if (bUseServerSideRewind && OwnerCharacter->GetLagCompensation() && OwnerCharacter->IsLocallyControlled())
+			if (HitCharacter && bUseServerSideRewind && OwnerCharacter->GetLagCompensation() && OwnerCharacter->IsLocallyControlled())
 			{
 				OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(
 					HitCharacter,
@@ -58,6 +58,10 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 					InitialVelocity,
 					OwnerController->GetServerTime()-OwnerController->SingleTripTime
 				);
+			}
+			else if(HitCharacter==nullptr)
+			{
+				UGameplayStatics::ApplyDamage(OtherActor, Damage, OwnerController, this, UDamageType::StaticClass());
 			}
 		}
 	}

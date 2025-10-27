@@ -533,6 +533,11 @@ void ACowBoyCharacter::OnRep_Health(float LastHealth)
 	if (Health < LastHealth)
 	{
 		PlayHitReactMontage();
+		CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+		if (CowBoyController->IsLocalController())
+		{
+			CowBoyController->AddDamageEffect();
+		}
 	}
 
 }
