@@ -408,6 +408,17 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 
 
 
+void ACowBoyCharacter::ServerLeaveGame_Implementation()
+{
+	AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+	CowBoyPlayerState = CowBoyPlayerState == nullptr? GetPlayerState<ACowBoyPlayerState>(): CowBoyPlayerState;
+	
+	if (WestWorldGameMode)
+	{
+		WestWorldGameMode->PlayerLeftGame(CowBoyPlayerState);
+	}
+}
+
 void ACowBoyCharacter::RequestRespawn()
 {
 	AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
@@ -422,16 +433,19 @@ void ACowBoyCharacter::MulticastRespawn_Implementation()
 }
 
 
-void ACowBoyCharacter::Elim()
+void ACowBoyCharacter::Elim(bool bPlayerLeftGame)
 {
 	if (Combat && Combat->EquippedWeapon)
 	{
 		Combat->EquippedWeapon->Dropped();
 	}
-	MultCastElim();
+	MultCastElim( bPlayerLeftGame);
+	
 }
-void ACowBoyCharacter::MultCastElim_Implementation()
+void ACowBoyCharacter::MultCastElim_Implementation(bool bPlayerLeftGame)
 {
+	
+	bLeftGame = bPlayerLeftGame;
 	bElimmed = true;
 	if (!bShootHead)
 	{
@@ -450,7 +464,10 @@ void ACowBoyCharacter::MultCastElim_Implementation()
 	}
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_MeleeTraceChannel,ECollisionResponse::ECR_Ignore);
-	
+	if (bPlayerLeftGame && IsLocallyControlled())
+	{
+		OnLeftGame.Broadcast();
+	}
 }
 
 void ACowBoyCharacter::PlayHitReactMontage()
@@ -536,7 +553,7 @@ void ACowBoyCharacter::OnRep_Health(float LastHealth)
 	{
 		PlayHitReactMontage();
 		CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
-		if (CowBoyController->IsLocalController())
+		if (CowBoyController && CowBoyController->IsLocalController())
 		{
 			CowBoyController->AddDamageEffect();
 		}

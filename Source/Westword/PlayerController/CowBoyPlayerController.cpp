@@ -15,6 +15,45 @@
 #include "PlayerState/CowBoyPlayerState.h"
 #include "HUD/ReturnToMainMenu.h"
 
+
+void ACowBoyPlayerController::BroadCastElim(APlayerState* Attacker, APlayerState* Victim)
+{
+	ClientElimAnnouncement(Attacker, Victim);
+}
+void ACowBoyPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
+{
+	APlayerState* Self = TObjectPtr<APlayerState>(GetPlayerState<APlayerState>());
+	if (Attacker && Victim && Self)
+	{
+		CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+		if (CowboyHUD)
+		{
+			if (Attacker == Self && Victim != Self)
+			{
+				CowboyHUD->AddElimAnnouncement("你", Victim->GetPlayerName());
+				return;
+			}
+			if (Victim == Self && Attacker != Self)
+			{
+				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "you");
+				return;
+			}
+			if (Attacker == Victim && Attacker == Self)
+			{
+				CowboyHUD->AddElimAnnouncement("你", "你自己");
+				return;
+			}
+			if (Attacker == Victim && Attacker != Self)
+			{
+				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "他自己");
+				return;
+			}
+			CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), Victim->GetPlayerName());
+		}
+	}
+}
+
+
 void ACowBoyPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -101,6 +140,7 @@ void ACowBoyPlayerController::ShowReturnToMainMenu()
 		}
 	}
 }
+
 
 void ACowBoyPlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
 {
@@ -444,6 +484,7 @@ void ACowBoyPlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 	
 	
 }
+
 
 
 

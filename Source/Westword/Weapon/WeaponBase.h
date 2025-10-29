@@ -112,4 +112,7 @@ public:
 	void GetWeaponState(EWeaponState& OutState) { OutState = WeaponState; }
 	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	void Dropped();
+
+	float Damage;
+	float HeadShotDamage;
 };

@@ -47,12 +47,15 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
 					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,host - use replicated projectile"));
-					
+					Damage = SpawnedProjectile->Damage;
+					HeadShotDamage = SpawnedProjectile->HeadShotDamage;
 				}
 				else //server,not locally controlled spawn non-replicated projectile,ssr
 				{
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = true;
+					Damage = SpawnedProjectile->Damage;
+					HeadShotDamage = SpawnedProjectile->HeadShotDamage;
 					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,not locally controlled spawn non-replicated projectile,ssr"));
 				}
 
@@ -241,6 +244,34 @@ void ARangeWeapon::OnRep_Owner()
 		
 	}
 	
+}
+
+float ARangeWeapon::GetProjectileDamage() const
+{
+	if (ProjectileClass)
+	{
+		// 获取Projectile类的默认对象
+		AProjectile* DefaultProjectile = ProjectileClass->GetDefaultObject<AProjectile>();
+		if (DefaultProjectile)
+		{
+			return DefaultProjectile->GetDamage();
+		}
+	}
+	return 0.0f; // 默认值
+}
+
+float ARangeWeapon::GetProjectileHeadShotDamage() const
+{
+	if (ProjectileClass)
+	{
+		// 获取Projectile类的默认对象
+		AProjectile* DefaultProjectile = ProjectileClass->GetDefaultObject<AProjectile>();
+		if (DefaultProjectile)
+		{
+			return DefaultProjectile->GetHeadShotDamage();
+		}
+	}
+	return 0.0f; // 默认值
 }
 
 

@@ -58,7 +58,8 @@ private:
 
 public:
 
-
+	float GetProjectileDamage() const;
+	float GetProjectileHeadShotDamage() const;
 	// ¿ª»ğÃÉÌ«Ææ
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* FireMontage;

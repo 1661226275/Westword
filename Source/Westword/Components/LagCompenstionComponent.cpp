@@ -80,9 +80,17 @@ void ULagCompenstionComponent::ProjectileServerScoreRequest_Implementation(ACowB
 	FServerSideRewindResult Confirm = ProjectileServerSideRewind(HitCharacter, TraceStart, InitialVelocity, HitTime);
 	if (Character && HitCharacter && Confirm.bHitConfirmed)
 	{
+		float WeaponDamage = 0.f;
+		float WeaponHeadShotDamage = 0.f;
+		if (Cast<ARangeWeapon>(Character->GetCombatComponent()->GetEquippedWeapon()))
+		{
+			WeaponDamage = Cast<ARangeWeapon>(Character->GetCombatComponent()->GetEquippedWeapon())->GetProjectileDamage();
+			WeaponHeadShotDamage = Cast<ARangeWeapon>(Character->GetCombatComponent()->GetEquippedWeapon())->GetProjectileHeadShotDamage();
+		}
+		const float Damage = Confirm.bHeadShot ? WeaponHeadShotDamage : WeaponDamage;
 		UGameplayStatics::ApplyDamage(
 			HitCharacter,
-			30,
+			Damage,
 			Character->Controller,
 			Character->GetCombatComponent()->GetEquippedWeapon(),
 			UDamageType::StaticClass()

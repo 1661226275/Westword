@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
 #include "GameFramework/GameModeBase.h"
+#include "Character/CowBoyCharacter.h"
 
 void UReturnToMainMenu::MenuSetUp()
 {
@@ -75,15 +76,7 @@ bool UReturnToMainMenu::Initialize()
 	return true;
 }
 
-void UReturnToMainMenu::ReturnButtonClicked()
-{
-	ReturnButton->SetIsEnabled(false);
-	if (MultiplayerSessionsSubsystem)
-	{
-		MultiplayerSessionsSubsystem->DestroySession();
 
-	}
-}
 
 void UReturnToMainMenu::OnDestroySession(bool bWasSuccessful)
 {
@@ -110,4 +103,39 @@ void UReturnToMainMenu::OnDestroySession(bool bWasSuccessful)
 		}
 	}
 
+}
+
+
+void UReturnToMainMenu::ReturnButtonClicked()
+{
+	ReturnButton->SetIsEnabled(false);
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		APlayerController* FirstPlayerController = World->GetFirstPlayerController();
+		if (FirstPlayerController)
+		{
+			ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(FirstPlayerController->GetPawn());
+			if (CowBoyCharacter)
+			{
+				CowBoyCharacter->ServerLeaveGame();
+				CowBoyCharacter->OnLeftGame.AddDynamic(this, &UReturnToMainMenu::OnPlayerLeftGame);
+			}
+			else
+			{
+				ReturnButton->SetIsEnabled(true);
+			}
+		}
+	}
+
+}
+
+void UReturnToMainMenu::OnPlayerLeftGame()
+{
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->DestroySession();
+
+	}
 }

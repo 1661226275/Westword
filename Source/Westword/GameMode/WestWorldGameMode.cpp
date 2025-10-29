@@ -5,6 +5,7 @@
 #include "Character/CowBoyCharacter.h"
 #include "PlayerController/CowBoyPlayerController.h"
 #include "PlayerState/CowBoyPlayerState.h"
+#include "GameState/WestWorldGameState.h"
 
 namespace MatchState
 {
@@ -73,7 +74,15 @@ void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, AC
 		//来自玩家的攻击
 		if (ElimmedCharacter)
 		{
-			ElimmedCharacter->Elim();
+			ElimmedCharacter->Elim(false);
+		}
+	}
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACowBoyPlayerController* CowBoyPlayerController = Cast<ACowBoyPlayerController>(*It);
+		if (CowBoyPlayerController && AttackerPlayerState && VictimPlayerState)
+		{
+			CowBoyPlayerController->BroadCastElim(AttackerPlayerState, VictimPlayerState);
 		}
 	}
 }
@@ -85,6 +94,17 @@ void AWestWorldGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AControlle
 		ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(ElimmedCharacter);
 		CowBoyCharacter->MulticastRespawn();
 
+	}
+}
+
+void AWestWorldGameMode::PlayerLeftGame(ACowBoyPlayerState* PlayerLeaving)
+{
+	if (PlayerLeaving == nullptr) return;
+	AWestWorldGameState* WestWorldGameState = GetGameState<AWestWorldGameState>();
+	ACowBoyCharacter*CharacterLeaving = Cast<ACowBoyCharacter>(PlayerLeaving->GetPawn());
+	if (CharacterLeaving)
+	{
+		CharacterLeaving->Elim(true);
 	}
 }
 

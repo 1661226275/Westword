@@ -23,7 +23,12 @@ public:
 	FVector_NetQuantize100 InitialVelocity;
 	UPROPERTY(EditAnywhere)
 	float InitialSpeed = 15000;
+
+	UPROPERTY(EditAnywhere)
 	float Damage = 30;
+
+	UPROPERTY(EditAnywhere)
+	float HeadShotDamage = 30;
 
 protected:
 
@@ -65,5 +70,6 @@ private:
 public:	
 
 	float GetDamage()const { return Damage; }
+	float GetHeadShotDamage()const { return HeadShotDamage; }
 
 };

@@ -45,6 +45,8 @@ public:
 	
 	float SingleTripTime = 0.f;
 	FHighPingDelegate HighPingDelegate;
+
+	void BroadCastElim(APlayerState* Attacker, APlayerState* Victim);
 	
 protected:
 
@@ -85,6 +87,9 @@ protected:
 	void CheckPing(float DeltaTime);
 
 	void ShowReturnToMainMenu();
+
+	UFUNCTION(Client,Reliable)
+	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
 
 private:
 	class ACowBoyHUD* CowboyHUD;

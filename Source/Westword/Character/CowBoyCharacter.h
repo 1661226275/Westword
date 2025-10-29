@@ -14,6 +14,8 @@
 #include "Skills/BeastInstinct.h"
 #include "CowBoyCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 UCLASS(Blueprintable, BlueprintType)
 class WESTWORD_API ACowBoyCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -53,9 +55,14 @@ public:
 
 	
 
-	void Elim();
+	void Elim(bool bPlayerLeftGame);
 	UFUNCTION(NetMulticast, Reliable)
-	void MultCastElim();
+	void MultCastElim(bool bPlayerLeftGame);
+	bool bLeftGame = false;
+	FOnLeftGame OnLeftGame;
+
+	UFUNCTION(Server,Reliable)
+	void ServerLeaveGame();
 	//∏¥ªÓ«Î«Û
 	void RequestRespawn();
 	//∏¥ªÓ

@@ -7,6 +7,10 @@
 #include "CharacterDeBuffWidget.h"
 #include "DamageWidget.h"
 #include "Announcement.h"
+#include"ElimAnnouncement.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/HorizontalBox.h"
+#include "Components/CanvasPanelSlot.h"
 
 
 void ACowBoyHUD::BeginPlay()
@@ -73,6 +77,55 @@ void ACowBoyHUD::AddDamageEffect()
 	if (CharacterHurtHUD)
 	{
 		CharacterHurtHUD->PlayDamageEffect();
+	}
+}
+
+void ACowBoyHUD::AddElimAnnouncement(FString Attacker, FString Victim)
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && AnnouncementClass)
+	{
+		UElimAnnouncement* ElimAnnouncemnetWidget = CreateWidget<UElimAnnouncement>(OwningPlayer, ElimAnnouncementClass);
+		
+		if (ElimAnnouncemnetWidget)
+		{
+			ElimAnnouncemnetWidget->SetElimAnnouncementText(Attacker, Victim);
+			ElimAnnouncemnetWidget->AddToViewport();
+			for (UElimAnnouncement* Msg : ElimMessage)
+			{
+				if (Msg && Msg->AnnouncementBox)
+				{
+					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox);
+					if (CanvasSlot)
+					{
+						FVector2D Position = CanvasSlot->GetPosition();
+						FVector2D NewPosition(Position.X, Position.Y - CanvasSlot->GetSize().Y);
+						CanvasSlot->SetPosition(NewPosition);
+					}
+					
+				}
+			}
+
+
+			ElimMessage.Add(ElimAnnouncemnetWidget);
+			FTimerHandle ElimMsgTimer;
+			FTimerDelegate ElimMsgDelegate;
+			ElimMsgDelegate.BindUFunction(this, FName("ElimAnnouncementTimerFinished"), ElimAnnouncemnetWidget);
+			GetWorldTimerManager().SetTimer(
+				ElimMsgTimer,
+				ElimMsgDelegate,
+				ElimAnnouncementTime,
+				false
+			);
+		}
+	}
+}
+
+void ACowBoyHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
+{
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
 	}
 }
 
@@ -147,4 +200,6 @@ void ACowBoyHUD::DrawCrosshairs(UTexture2D* Texture, FVector2D ViewportCenter, F
 		CrosshairColor
 	);
 }
+
+
 
