@@ -20,7 +20,8 @@ public class Westword : ModuleRules
 			"UMG",
 			"Slate",
 			"OnlineSubsystemSteam",
-			"OnlineSubsystem"
+			"OnlineSubsystem",
+            "MultiplayerSessions"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

@@ -306,6 +306,8 @@ private:
 
 	bool bElimmed = false;
 	bool bShootHead = false;
+
+	UPROPERTY(Replicated)
 	bool bIsSprinting = false;
 
 public:	

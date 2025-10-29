@@ -17,6 +17,9 @@ class WESTWORD_API ACowBoyPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
+	
+
+
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDSan(float San, float MaxSan);
 	void SetHUDScore(float Score);
@@ -44,7 +47,10 @@ public:
 	FHighPingDelegate HighPingDelegate;
 	
 protected:
+
+	
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 	void HandleMatchHasStarted(bool bTeamsMatch = false);
 	void HandleWarmup();
 	void HandleCooldown();
@@ -78,9 +84,20 @@ protected:
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
 
+	void ShowReturnToMainMenu();
+
 private:
 	class ACowBoyHUD* CowboyHUD;
-	
+
+	/*
+	* Return to main menu
+	*/
+	UPROPERTY(EditAnywhere,Category = HUD)
+	TSubclassOf<class UUserWidget>ReturnToMainMenuWidget;
+	UPROPERTY()
+	class UReturnToMainMenu* ReturnToMainMenu;
+	bool bReturnToMainMenuOpen = false;
+
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
 	float LevelStartingTime = 0.f;

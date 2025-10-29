@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/Image.h"
 #include "PlayerState/CowBoyPlayerState.h"
+#include "HUD/ReturnToMainMenu.h"
 
 void ACowBoyPlayerController::BeginPlay()
 {
@@ -21,6 +22,14 @@ void ACowBoyPlayerController::BeginPlay()
 	ServerCheckMatchState();
 	CowboyHUD = Cast<ACowBoyHUD>(GetHUD());
 	
+}
+
+void ACowBoyPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	if (InputComponent == nullptr) return;
+	InputComponent->BindAction("Quit", IE_Pressed, this, &ACowBoyPlayerController::ShowReturnToMainMenu);
+
 }
 
 
@@ -68,6 +77,27 @@ void ACowBoyPlayerController::CheckPing(float DeltaTime)
 		if (PingAnimationRunningTime > HighPingDuration)
 		{
 			StopHighPingWarning();
+		}
+	}
+}
+
+void ACowBoyPlayerController::ShowReturnToMainMenu()
+{
+	if (ReturnToMainMenuWidget == nullptr) return;
+	if (ReturnToMainMenu == nullptr)
+	{
+		ReturnToMainMenu = CreateWidget<UReturnToMainMenu>(this, ReturnToMainMenuWidget);
+	}
+	if (ReturnToMainMenu)
+	{
+		bReturnToMainMenuOpen = !bReturnToMainMenuOpen;
+		if (bReturnToMainMenuOpen)
+		{
+			ReturnToMainMenu->MenuSetUp();
+		}
+		else
+		{
+			ReturnToMainMenu->MenuTearDown();
 		}
 	}
 }

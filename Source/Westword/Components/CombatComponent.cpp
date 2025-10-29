@@ -597,5 +597,9 @@ void UCombatComponent::ServerSetPlayerState_Implementation(ECharacterState NewSt
 
 void UCombatComponent::OnPingTooHigh(bool bPingTooHigh)
 {
-	EquippedWeapon->OnPingTooHigh(bPingTooHigh);
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->OnPingTooHigh(bPingTooHigh);
+	}
+	
 }
