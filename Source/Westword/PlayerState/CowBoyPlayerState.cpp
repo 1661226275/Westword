@@ -34,3 +34,9 @@ void ACowBoyPlayerState::AddToScore(float ScoreDelta)
 		}
 	}
 }
+
+void ACowBoyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACowBoyPlayerState, Team);
+}

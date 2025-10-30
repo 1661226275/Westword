@@ -47,6 +47,10 @@ public:
 	FHighPingDelegate HighPingDelegate;
 
 	void BroadCastElim(APlayerState* Attacker, APlayerState* Victim);
+
+	// 初始化友方显示
+	UFUNCTION()
+	void InitializeFriendlyNameplates();
 	
 protected:
 
@@ -93,7 +97,8 @@ protected:
 
 private:
 	class ACowBoyHUD* CowboyHUD;
-
+	UPROPERTY()
+	class ACowBoyPlayerState* LocalPlayerState;
 	/*
 	* Return to main menu
 	*/

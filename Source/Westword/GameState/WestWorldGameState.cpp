@@ -5,4 +5,17 @@
 #include "Net/UnrealNetwork.h"
 #include "PlayerState/CowBoyPlayerState.h"
 
+void AWestWorldGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWestWorldGameState, RedTeamScore);
+	DOREPLIFETIME(AWestWorldGameState, BlueTeamScore);
+}
 
+void AWestWorldGameState::OnRep_RedTeamScore()
+{
+}
+
+void AWestWorldGameState::OnRep_BlueTeamScore()
+{
+}

@@ -18,6 +18,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Pickups/Pickup.h"
 #include "Engine/DamageEvents.h"
+#include "HUD/CowBoyNameWidget.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerState/CowBoyPlayerState.h"
@@ -49,6 +50,9 @@ ACowBoyCharacter::ACowBoyCharacter()
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+
+	NameWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameWidget"));
+	NameWidget->SetupAttachment(GetMesh());
 
 	WeaponSolts.Init(nullptr, 2);
 	EquipWeaponSocket.Add(0, FName("HolsterSocket"));
@@ -229,6 +233,7 @@ void ACowBoyCharacter::BeginPlay()
 	}
 
 	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
+	NameWidget->SetVisibility(false);
 }
 
 
@@ -643,6 +648,20 @@ void ACowBoyCharacter::DecreaseSan()
 		if (San <= 0)
 		{
 			GetWorldTimerManager().ClearTimer(TimerHandle_SanDecrease);
+		}
+	}
+}
+
+void ACowBoyCharacter::SetUpNamePlate(const FString& PlayerName)
+{
+	if (NameWidget)
+	{
+		// 获取或创建名称显示Widget
+		UCowBoyNameWidget* NameplateWidget = Cast<UCowBoyNameWidget>(NameWidget->GetUserWidgetObject());
+
+		if (NameplateWidget)
+		{
+			NameplateWidget->SetNameText(PlayerName);
 		}
 	}
 }

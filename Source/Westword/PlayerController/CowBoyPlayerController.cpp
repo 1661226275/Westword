@@ -10,6 +10,7 @@
 #include "Components/CanvasPanel.h"
 #include "Character/CowBoyCharacter.h"
 #include "GameMode/WestWorldGameMode.h"
+#include "GameState/WestWorldGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Image.h"
 #include "PlayerState/CowBoyPlayerState.h"
@@ -20,6 +21,7 @@ void ACowBoyPlayerController::BroadCastElim(APlayerState* Attacker, APlayerState
 {
 	ClientElimAnnouncement(Attacker, Victim);
 }
+
 void ACowBoyPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
 {
 	APlayerState* Self = TObjectPtr<APlayerState>(GetPlayerState<APlayerState>());
@@ -60,6 +62,7 @@ void ACowBoyPlayerController::BeginPlay()
 
 	ServerCheckMatchState();
 	CowboyHUD = Cast<ACowBoyHUD>(GetHUD());
+	
 	
 }
 
@@ -520,6 +523,10 @@ void ACowBoyPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 		}
 	}
 
+	// 延迟一点时间确保所有PlayerState都已复制
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACowBoyPlayerController::InitializeFriendlyNameplates, 1.f, false);
+	
 }
 
 void ACowBoyPlayerController::HandleWarmup()
@@ -545,4 +552,39 @@ void ACowBoyPlayerController::HandleCooldown()
 		
 	}
 
+}
+
+
+void ACowBoyPlayerController::InitializeFriendlyNameplates()
+{
+	
+	LocalPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<ACowBoyPlayerState>();
+	if (!LocalPlayerState) return;
+
+	// 获取GameState
+	AWestWorldGameState* GameState = Cast<AWestWorldGameState>(GetWorld()->GetGameState());
+	if (!GameState) return;
+
+	// 遍历所有PlayerState
+	for (APlayerState* PS : GameState->PlayerArray)
+	{
+		ACowBoyPlayerState* CowBoyPlayerState = Cast<ACowBoyPlayerState>(PS);
+		FString TeamString = UEnum::GetValueAsString(CowBoyPlayerState->GetTeam());
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Team: %s"), *TeamString));
+		if (CowBoyPlayerState && CowBoyPlayerState != LocalPlayerState)
+		{
+			// 检查是否是友方
+			if (CowBoyPlayerState->GetTeam() == LocalPlayerState->GetTeam())
+			{
+				// 获取对应的Character
+				ACowBoyCharacter* OtherCharacter = Cast<ACowBoyCharacter>(CowBoyPlayerState->GetPawn());
+				if (OtherCharacter)
+				{
+					OtherCharacter->SetNameWidgetVisibility(true);
+					OtherCharacter->SetUpNamePlate(CowBoyPlayerState->GetPlayerName());
+				}
+				
+			}
+		}
+	}
 }

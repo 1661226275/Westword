@@ -12,6 +12,7 @@
 #include "Components/BuffeComponent.h"
 #include "Skills/ActivateSkillBase.h"
 #include "Skills/BeastInstinct.h"
+
 #include "CowBoyCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
@@ -83,6 +84,9 @@ public:
 	void DecreaseSan();
 	UPROPERTY()
 	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
+
+	void SetUpNamePlate(const FString& PlayerName);
+	void SetNameWidgetVisibility(bool bIsVisible) { if (NameWidget) NameWidget->SetVisibility(bIsVisible); }
 
 protected:
 	// Called when the game starts or when spawned
@@ -190,8 +194,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* foot_r;
 
-	
+	/*
+	* 团队成员姓名显示
+	*/
 
+	// NameWidget组件
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	class UWidgetComponent* NameWidget;
 
 
 

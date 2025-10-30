@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "DataType/Team.h"
 #include "CowBoyPlayerState.generated.h"
 
 /**
@@ -17,8 +18,16 @@ class WESTWORD_API ACowBoyPlayerState : public APlayerState
 public:
 	virtual void OnRep_Score() override;
 	void AddToScore(float ScoreDelta);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	class ACowBoyCharacter* Character;
 	class ACowBoyPlayerController* Controller;
+
+	UPROPERTY(Replicated)
+	ETeam Team = ETeam::ET_NoTeam;
+
+public:
+	ETeam GetTeam()const { return Team; }
+	void SetTeam(ETeam TEamToSet) { Team = TEamToSet; }
 };

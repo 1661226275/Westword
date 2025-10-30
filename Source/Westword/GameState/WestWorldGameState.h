@@ -14,7 +14,26 @@ class WESTWORD_API AWestWorldGameState : public AGameState
 {
 	GENERATED_BODY()
 
+
 public:
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	/*
+	* Teams
+	*/
+	TArray<class ACowBoyPlayerState*> RedTeam;
+	TArray<ACowBoyPlayerState*> BlueTeam;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RedTeamScore)
+	float RedTeamScore = 0.f;
+	UFUNCTION()
+	void OnRep_RedTeamScore();
+	UPROPERTY(ReplicatedUsing = OnRep_BlueTeamScore)
+	float BlueTeamScore = 0.f;
+	UFUNCTION()
+	void OnRep_BlueTeamScore();
+
+
+	
 	
 };
