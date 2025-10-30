@@ -105,7 +105,11 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastSlide();
 	void StartSprint();
+	UFUNCTION(Server, Reliable)
+	void ServerStartSprint();
 	void EndSprint();
+	UFUNCTION(Server, Reliable)
+	void ServerEndSprint();
 	void EquipRangeWeaponBottonPressed();
 	UFUNCTION(Server, Reliable)
 	void ServerEquipRangeWeapon();
@@ -120,6 +124,8 @@ protected:
 
 
 	void PickUpBottonPressed();
+	UFUNCTION(Server, Reliable)
+	void ServerPickUp();
 	void AimBottonPressed();
 	void AimBottonReleased();
 	void AttackBottonPressed();
@@ -225,8 +231,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = Animation)
 	class UAnimMontage* DeBuffReactMontage;
 
-
-	
+	UPROPERTY()
+	class AWestWorldGameMode* WestWorldGameMode;
 
 	//武器槽,2个武器槽，近战和远程
 	UPROPERTY(Replicated,VisibleAnyWhere, Category = Weapon)

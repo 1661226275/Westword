@@ -17,6 +17,8 @@ AWestWorldGameMode::AWestWorldGameMode()
 	bDelayedStart = true;
 }
 
+
+
 void AWestWorldGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -57,6 +59,11 @@ void AWestWorldGameMode::Tick(float DeltaTime)
 	}
 	
 	
+}
+
+float AWestWorldGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
+{
+	return BaseDamage;
 }
 
 void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, ACowBoyPlayerController* VictimController, AController* AttackController)

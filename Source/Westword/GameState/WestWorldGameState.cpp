@@ -12,6 +12,16 @@ void AWestWorldGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AWestWorldGameState, BlueTeamScore);
 }
 
+void AWestWorldGameState::RedTeamScores()
+{
+	++RedTeamScore;
+}
+
+void AWestWorldGameState::BlueTeamScores()
+{
+	++BlueTeamScore;
+}
+
 void AWestWorldGameState::OnRep_RedTeamScore()
 {
 }

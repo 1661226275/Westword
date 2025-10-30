@@ -17,10 +17,13 @@ class WESTWORD_API AWestWorldGameState : public AGameState
 
 public:
 
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	/*
 	* Teams
 	*/
+	void RedTeamScores();
+	void BlueTeamScores();
 	TArray<class ACowBoyPlayerState*> RedTeam;
 	TArray<ACowBoyPlayerState*> BlueTeam;
 

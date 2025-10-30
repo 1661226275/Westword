@@ -114,6 +114,17 @@ bool AWeaponBase::CanAttack()
 	return true;
 }
 
+void AWeaponBase::PickUp()
+{
+		
+	WeaponState = EWeaponState::EWS_PickUp;
+	SetPickUpWidgetVisibility(false);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+}
+
 void AWeaponBase::SetWeaponHUDVisible(bool bIsVisible)
 {
 }

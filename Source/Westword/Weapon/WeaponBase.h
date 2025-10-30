@@ -26,6 +26,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Attack();
 	virtual bool CanAttack();
+	virtual void PickUp();
 	virtual void SetWeaponHUDVisible(bool bIsVisible);
 	bool IsUseServerSideRewind() const { return bUseServerSidleRewind; }
 	UFUNCTION()
@@ -111,6 +112,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GetWeaponState(EWeaponState& OutState) { OutState = WeaponState; }
 	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
 	void Dropped();
 
 	float Damage;

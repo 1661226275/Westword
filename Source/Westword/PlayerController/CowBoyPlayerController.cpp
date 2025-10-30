@@ -569,8 +569,6 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 	for (APlayerState* PS : GameState->PlayerArray)
 	{
 		ACowBoyPlayerState* CowBoyPlayerState = Cast<ACowBoyPlayerState>(PS);
-		FString TeamString = UEnum::GetValueAsString(CowBoyPlayerState->GetTeam());
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Team: %s"), *TeamString));
 		if (CowBoyPlayerState && CowBoyPlayerState != LocalPlayerState)
 		{
 			// 检查是否是友方

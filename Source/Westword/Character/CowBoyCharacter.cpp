@@ -415,7 +415,7 @@ void ACowBoyCharacter::AimOffset(float DeltaTime)
 
 void ACowBoyCharacter::ServerLeaveGame_Implementation()
 {
-	AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+	WestWorldGameMode = WestWorldGameMode == nullptr ? GetWorld()->GetAuthGameMode<AWestWorldGameMode>() : WestWorldGameMode;
 	CowBoyPlayerState = CowBoyPlayerState == nullptr? GetPlayerState<ACowBoyPlayerState>(): CowBoyPlayerState;
 	
 	if (WestWorldGameMode)
@@ -426,7 +426,7 @@ void ACowBoyCharacter::ServerLeaveGame_Implementation()
 
 void ACowBoyCharacter::RequestRespawn()
 {
-	AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+	WestWorldGameMode = WestWorldGameMode == nullptr ? GetWorld()->GetAuthGameMode<AWestWorldGameMode>() : WestWorldGameMode;
 	if (WestWorldGameMode)
 	{
 		WestWorldGameMode->RequestRespawn(this,CowBoyController);
@@ -527,7 +527,10 @@ void ACowBoyCharacter::PlayDeBuffReactMontage()
 
 void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	WestWorldGameMode = WestWorldGameMode == nullptr ? GetWorld()->GetAuthGameMode<AWestWorldGameMode>() : WestWorldGameMode;
+	if (bElimmed || WestWorldGameMode == nullptr) return;
+	Damage = WestWorldGameMode->CalculateDamage(InstigatedBy,Controller,Damage);
+;	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	//to do 
 	//根据伤害的类型去更新腐化值
@@ -541,7 +544,7 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 
 	if (Health <= 0.f)
 	{
-		AWestWorldGameMode* WestWorldGameMode = GetWorld()->GetAuthGameMode<AWestWorldGameMode>();
+		
 		if (WestWorldGameMode)
 		{
 			CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
@@ -800,12 +803,22 @@ void ACowBoyCharacter::MultiCastSlide_Implementation()
 
 void ACowBoyCharacter::StartSprint()
 {
-	bIsSprinting = true;
-	GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+	ServerStartSprint();
 	
 }
 
+void ACowBoyCharacter::ServerStartSprint_Implementation()
+{
+	bIsSprinting = true;
+	GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+}
+
 void ACowBoyCharacter::EndSprint()
+{
+	ServerEndSprint();
+}
+
+void ACowBoyCharacter::ServerEndSprint_Implementation()
 {
 	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
@@ -947,6 +960,39 @@ void ACowBoyCharacter::PickUpBottonPressed()
 	{
 		OverLapInteractActor->Interact(this);
 	}
+	else if (OverLapWeapon)
+	{
+		if (HasAuthority())
+		{
+			FName SocketName = FName("PickUpSocket");
+			const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
+			if (HolsterSocket)
+			{
+				HolsterSocket->AttachActor(OverLapWeapon, GetMesh());
+				OverLapWeapon->SetOwner(this);
+
+			}
+			OverLapWeapon->PickUp();
+		}
+		else
+		{
+			ServerPickUp();
+		}
+		
+	}
+}
+
+void ACowBoyCharacter::ServerPickUp_Implementation()
+{
+	FName SocketName = FName("PickUpSocket");
+	const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
+	if (HolsterSocket)
+	{
+		HolsterSocket->AttachActor(OverLapWeapon, GetMesh());
+		OverLapWeapon->SetOwner(this);
+
+	}
+	OverLapWeapon->PickUp();
 }
 
 void ACowBoyCharacter::AimBottonPressed()
