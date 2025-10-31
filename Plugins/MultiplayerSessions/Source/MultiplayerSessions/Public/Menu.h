@@ -54,7 +54,7 @@ private:
 	//使用我们自定义的Subsystem，这里面集成了OnlineSubsystem的功能
 	class UMultiplayerSessionsSubsystem* MultiplayerSessionsSubsystem;
 
-	int32 NumPublicConnections{ 4 };
+	int32 NumPublicConnections{ 12 };
 	FString MatchType{ TEXT("FreeForAll") };
 	FString PathtoLobby{ TEXT("") };
 	

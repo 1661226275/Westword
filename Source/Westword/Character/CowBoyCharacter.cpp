@@ -23,6 +23,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerState/CowBoyPlayerState.h"
 #include "Components/LagCompenstionComponent.h"
+#include "PlayerStart/TeamPlayerStart.h"
 
 // Sets default values
 ACowBoyCharacter::ACowBoyCharacter()
@@ -392,6 +393,7 @@ void ACowBoyCharacter::PollInit()
 		if(CowBoyPlayerState)
 		{
 			CowBoyPlayerState->AddToScore(0.f);
+			SetSpawnPoint();
 		}
 	}
 }
@@ -939,6 +941,32 @@ void ACowBoyCharacter::MultiCastEquipMeleeWeapon_Implementation()
 				false 
 			);
 
+		}
+	}
+}
+
+void ACowBoyCharacter::SetSpawnPoint()
+{
+	if (HasAuthority() && CowBoyPlayerState->GetTeam()!= ETeam::ET_NoTeam)
+	{
+		TArray<AActor*> PlayerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this, ATeamPlayerStart::StaticClass(), PlayerStarts);
+		TArray<ATeamPlayerStart*>TeamPLayerStarts;
+		for (auto Start : PlayerStarts)
+		{
+			ATeamPlayerStart* TeamStart = Cast<ATeamPlayerStart>(Start);
+			if (TeamStart && TeamStart->Team == CowBoyPlayerState->GetTeam())
+			{
+				TeamPLayerStarts.Add(TeamStart);
+			}
+		}
+		if (TeamPLayerStarts.Num() > 0)
+		{
+			ATeamPlayerStart* ChosenPlayerStart = TeamPLayerStarts[FMath::RandRange(0, TeamPLayerStarts.Num() - 1)];
+			SetActorLocationAndRotation(
+				ChosenPlayerStart->GetActorLocation(),
+				ChosenPlayerStart->GetActorRotation()
+			);
 		}
 	}
 }

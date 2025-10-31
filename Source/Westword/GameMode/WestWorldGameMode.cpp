@@ -74,7 +74,10 @@ void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, AC
 	{
 		AttackerPlayerState->AddToScore(1.f);
 	}
-	ElimmedCharacter->Elim(false);
+	if (ElimmedCharacter)
+	{
+		ElimmedCharacter->Elim(false);
+	}
 	//ACowBoyPlayerController* CowBoyAttackController = Cast<ACowBoyPlayerController>(AttackController);
 	//if (CowBoyAttackController)
 	//{

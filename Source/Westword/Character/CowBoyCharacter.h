@@ -212,6 +212,8 @@ protected:
 	UPROPERTY(Replicated)
 	AWeaponBase* Flag;
 
+	void SetSpawnPoint();
+
 private:
 	UPROPERTY(VisibleAnyWhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
