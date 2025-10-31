@@ -51,6 +51,7 @@ public:
 	UCombatComponent* GetCombatComponent() const { return Combat; }
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetWeapon(int index) const { return WeaponSolts[index]; }
+	AWeaponBase* GetFlag()const { return Flag; }
 	bool IsAiming() { return Combat && Combat->Player_State == ECharacterState::CharacterState_Aim; }
 	void AimOffset(float DeltaTime);
 
@@ -208,7 +209,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	class UWidgetComponent* NameWidget;
 
-
+	UPROPERTY(Replicated)
+	AWeaponBase* Flag;
 
 private:
 	UPROPERTY(VisibleAnyWhere, Category = Camera)
@@ -369,6 +371,8 @@ public:
 	class ACowBoyPlayerState* CowBoyPlayerState;
 	UBuffeComponent* GetBuffComponent() const { return Buff; }
 	ULagCompenstionComponent* GetLagCompensation() const { return LagCompensation; }
+
+	void Pickup();
 };
 
 

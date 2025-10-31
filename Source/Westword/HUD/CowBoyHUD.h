@@ -78,6 +78,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ElimAnnouncementTime = 3.f;
 
+
+	UFUNCTION()
 	void ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove);
 
 	TArray<UElimAnnouncement*>ElimMessage;

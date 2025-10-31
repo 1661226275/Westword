@@ -46,7 +46,6 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 				{
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,host - use replicated projectile"));
 					Damage = SpawnedProjectile->Damage;
 					HeadShotDamage = SpawnedProjectile->HeadShotDamage;
 				}
@@ -56,7 +55,7 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 					SpawnedProjectile->bUseServerSideRewind = true;
 					Damage = SpawnedProjectile->Damage;
 					HeadShotDamage = SpawnedProjectile->HeadShotDamage;
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("server,not locally controlled spawn non-replicated projectile,ssr"));
+					
 				}
 
 			}
@@ -68,14 +67,14 @@ void ARangeWeapon::Fire(const FVector& HitTarget)
 					SpawnedProjectile->bUseServerSideRewind = true;
 					SpawnedProjectile->TraceStart = SocketTransform.GetLocation();
 					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("client,locallt controlled -spawn non-repliced projectile,use ssr"));
+					
 
 				}
 				else
 				{
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("other"));
+					
 
 				}
 			}
@@ -122,10 +121,7 @@ void ARangeWeapon::PlayEquipMontage()
 		FName SectionName = FName("EquipRange");
 		AnimInstance->Montage_JumpToSection(SectionName, EquipAnimMontage);
 		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_EquipWeapon);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("RangeWeapon Playing Equip Montage")));
-		}
+		
 	}
 }
 
@@ -141,10 +137,7 @@ void ARangeWeapon::PlayUnEquipMontage()
 		FName SectionName = FName("UnEquipRange");
 		AnimInstance->Montage_JumpToSection(SectionName, UnequipAnimMontage);
 		Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_UnEquipWeapon);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("RangeWeapon Playing UnEquip Montage")));
-		}
+		
 	}
 }
 

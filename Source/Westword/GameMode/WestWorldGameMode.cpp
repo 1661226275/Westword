@@ -74,16 +74,16 @@ void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, AC
 	{
 		AttackerPlayerState->AddToScore(1.f);
 	}
-
-	ACowBoyPlayerController* CowBoyAttackController = Cast<ACowBoyPlayerController>(AttackController);
-	if (CowBoyAttackController)
-	{
-		//来自玩家的攻击
-		if (ElimmedCharacter)
-		{
-			ElimmedCharacter->Elim(false);
-		}
-	}
+	ElimmedCharacter->Elim(false);
+	//ACowBoyPlayerController* CowBoyAttackController = Cast<ACowBoyPlayerController>(AttackController);
+	//if (CowBoyAttackController)
+	//{
+	//	//来自玩家的攻击
+	//	if (ElimmedCharacter)
+	//	{
+	//		ElimmedCharacter->Elim(false);
+	//	}
+	//}
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		ACowBoyPlayerController* CowBoyPlayerController = Cast<ACowBoyPlayerController>(*It);

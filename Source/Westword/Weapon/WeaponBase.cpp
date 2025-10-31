@@ -3,6 +3,7 @@
 
 #include "Weapon/WeaponBase.h"
 #include "Character/CowBoyCharacter.h"
+#include "Westword.h"
 #include "PlayerController/CowBoyPlayerController.h"
 
 // Sets default values
@@ -58,7 +59,7 @@ void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	//ÈÕÖ¾Êä³ö
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Overlap Actor Name is %s"), *OtherActor->GetName()));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, GetName());
 	}
 	if (CowBoyCharacter && PickUpWeight)
 	{
@@ -81,15 +82,22 @@ void AWeaponBase::OnRep_WeaponState()
 	{
 	case EWeaponState::EWS_Equipped:
 	case EWeaponState::EWS_PickUp:
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
 		SetPickUpWidgetVisibility(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		WeaponMesh->SetSimulatePhysics(false);
 		WeaponMesh->SetEnableGravity(false);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 	case EWeaponState::EWS_Drop:
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Ignore);
 		WeaponMesh->SetSimulatePhysics(true);
 		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
@@ -117,11 +125,7 @@ bool AWeaponBase::CanAttack()
 void AWeaponBase::PickUp()
 {
 		
-	WeaponState = EWeaponState::EWS_PickUp;
-	SetPickUpWidgetVisibility(false);
-	WeaponMesh->SetSimulatePhysics(false);
-	WeaponMesh->SetEnableGravity(false);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetWeaponState( EWeaponState::EWS_PickUp);
 
 }
 
@@ -141,6 +145,8 @@ void AWeaponBase::SetWeaponState(EWeaponState NewState)
 	{
 	case EWeaponState::EWS_Equipped:
 	case EWeaponState::EWS_PickUp:
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetEnableGravity(false);
 		SetPickUpWidgetVisibility(false);
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		WeaponMesh->SetSimulatePhysics(false);
@@ -150,11 +156,16 @@ void AWeaponBase::SetWeaponState(EWeaponState NewState)
 	case EWeaponState::EWS_Drop:
 		if (HasAuthority())
 		{
-			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		}
-		//WeaponMesh->SetSimulatePhysics(true);
-		//WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Ignore);
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetEnableGravity(true);
 		break;
 	}
 	
@@ -170,12 +181,14 @@ void AWeaponBase::Dropped()
 			CowBoyOwnerController->HighPingDelegate.RemoveDynamic(this, &AWeaponBase::OnPingTooHigh);
 		}
 	}
-
-	SetWeaponState(EWeaponState::EWS_Drop);
+	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
 	SetPickUpWidgetVisibility(true);
 	CowBoyOwnerCharacter = nullptr;
 	CowBoyOwnerController = nullptr;
+	SetWeaponState(EWeaponState::EWS_Drop);
+	
 
 }
 

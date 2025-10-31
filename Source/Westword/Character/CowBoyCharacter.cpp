@@ -164,6 +164,7 @@ void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ACowBoyCharacter, San);
 	DOREPLIFETIME(ACowBoyCharacter, BeastInstinct);
 	DOREPLIFETIME(ACowBoyCharacter, bIsSprinting);
+	DOREPLIFETIME(ACowBoyCharacter, Flag);
 	
 }
 
@@ -210,7 +211,7 @@ void ACowBoyCharacter::BeginPlay()
 			WeaponSolts[i] = Weapon;
 			if (WeaponSolts[i])
 			{
-				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Spawn Weapon Name is %s"), *WeaponSolts[i]->GetName()));
+				
 				FName SocketName = EquipWeaponSocket[i];
 				const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
 				if (HolsterSocket)
@@ -258,11 +259,7 @@ void ACowBoyCharacter::SetOverLapWeapon(AWeaponBase* Weapon)
 		if (OverLapWeapon)
 		{
 			OverLapWeapon->SetPickUpWidgetVisibility(true);
-			//日志输出
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SetPickUpWidgetVisibility"));
-			}
+			
 		}
 
 	}
@@ -280,11 +277,7 @@ void ACowBoyCharacter::SetOverLapInteractActor(APickup* Actor)
 		if (OverLapInteractActor)
 		{
 			OverLapInteractActor->SetInteractWidgetVisibility(true);
-			//日志输出
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SetPickUpWidgetVisibility"));
-			}
+			
 		}
 	}
 }
@@ -341,10 +334,14 @@ void ACowBoyCharacter::HideCharacterIfCharacterClose()
 
 void ACowBoyCharacter::PlayDieMontage()
 {
+	
 	if (DieMontage == nullptr) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
+		FString Caller = HasAuthority() ? TEXT("Server") : TEXT("Client");
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+			FString::Printf(TEXT("PlayDieMontage - Called by: %s"), *Caller));
 		AnimInstance->Montage_Play(DieMontage);
 		FName SectionName = FName("DieRight");
 		AnimInstance->Montage_JumpToSection(SectionName);
@@ -364,6 +361,8 @@ void ACowBoyCharacter::PlayDieShootHeadMontage()
 		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Death);
 	}
 }
+
+
 
 void ACowBoyCharacter::UpdateHUDHealth()
 {
@@ -444,6 +443,15 @@ void ACowBoyCharacter::Elim(bool bPlayerLeftGame)
 	{
 		Combat->EquippedWeapon->Dropped();
 	}
+	if (Flag)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString("Flag Dropped"));
+		Flag->Dropped();
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString("NoFlag"));
+	}
 	MultCastElim( bPlayerLeftGame);
 	
 }
@@ -454,6 +462,7 @@ void ACowBoyCharacter::MultCastElim_Implementation(bool bPlayerLeftGame)
 	bElimmed = true;
 	if (!bShootHead)
 	{
+		
 		PlayDieMontage();
 	}
 	else 
@@ -469,6 +478,7 @@ void ACowBoyCharacter::MultCastElim_Implementation(bool bPlayerLeftGame)
 	}
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_MeleeTraceChannel,ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	if (bPlayerLeftGame && IsLocallyControlled())
 	{
 		OnLeftGame.Broadcast();
@@ -477,7 +487,6 @@ void ACowBoyCharacter::MultCastElim_Implementation(bool bPlayerLeftGame)
 
 void ACowBoyCharacter::PlayHitReactMontage()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("PlayHitReactMontage"));
 	if (Combat == nullptr) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HitReactMontage)
@@ -548,6 +557,7 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 		if (WestWorldGameMode)
 		{
 			CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString("PlayerElimed"));
 			WestWorldGameMode->PlayerEliminated(this, CowBoyController, InstigatedBy);
 		}
 	}
@@ -599,7 +609,7 @@ void ACowBoyCharacter::ServerHandleSanChange_Implementation(float DeltaSan)
 		// 如果超过阈值，启动周期性掉血（服务器）
 		if (San >= 70 && !GetWorldTimerManager().IsTimerActive(TimerHandle_SanDamage))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("TimerHandle_SanDamage"));
+			
 			GetWorldTimerManager().SetTimer(TimerHandle_SanDamage, this, &ACowBoyCharacter::ReceiveSanDamage, 5.0f, true);
 		}
 
@@ -964,15 +974,13 @@ void ACowBoyCharacter::PickUpBottonPressed()
 	{
 		if (HasAuthority())
 		{
-			FName SocketName = FName("PickUpSocket");
-			const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
-			if (HolsterSocket)
-			{
-				HolsterSocket->AttachActor(OverLapWeapon, GetMesh());
-				OverLapWeapon->SetOwner(this);
-
-			}
+			
+			Flag = OverLapWeapon;
+			OverLapWeapon->SetOwner(this);
 			OverLapWeapon->PickUp();
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &ACowBoyCharacter::Pickup, 0.1, false);
+			
 		}
 		else
 		{
@@ -984,17 +992,25 @@ void ACowBoyCharacter::PickUpBottonPressed()
 
 void ACowBoyCharacter::ServerPickUp_Implementation()
 {
+	
+	
+	Flag = OverLapWeapon;
+	OverLapWeapon->SetOwner(this);
+	OverLapWeapon->PickUp();
+	
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACowBoyCharacter::Pickup, 0.1, false);
+}
+
+void ACowBoyCharacter::Pickup()
+{
 	FName SocketName = FName("PickUpSocket");
 	const USkeletalMeshSocket* HolsterSocket = GetMesh()->GetSocketByName(SocketName);
 	if (HolsterSocket)
 	{
-		HolsterSocket->AttachActor(OverLapWeapon, GetMesh());
-		OverLapWeapon->SetOwner(this);
-
+		HolsterSocket->AttachActor(Flag, GetMesh());
 	}
-	OverLapWeapon->PickUp();
 }
-
 void ACowBoyCharacter::AimBottonPressed()
 {
 	if (Combat)
