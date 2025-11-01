@@ -5,6 +5,7 @@
 #include "HUD/CowBoyHUD.h"
 #include "HUD/CharacterOverlay.h"
 #include "HUD/Announcement.h"
+#include "HUD/GameEnd.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanel.h"
@@ -585,4 +586,22 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 			}
 		}
 	}
+}
+
+void ACowBoyPlayerController::SetGameEndHUD()
+{
+	LocalPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<ACowBoyPlayerState>();
+	if (!LocalPlayerState) return;
+	GameEndHUD = CreateWidget<UGameEnd>(this, GameEndClass);
+	if (GameEndHUD)
+	{
+		GameEndHUD->MenuSetUp();
+		GameEndHUD->KillHunterNum->SetText(FText::AsNumber(LocalPlayerState->KillHunterNum));
+		GameEndHUD->KillMonsterNum->SetText(FText::AsNumber(LocalPlayerState->KillMonsterNum));
+		GameEndHUD->KillBossNum->SetText(FText::AsNumber(LocalPlayerState->KillBossNum));
+		GameEndHUD->BountyText->SetText(FText::AsNumber(LocalPlayerState->Bounty));
+		GameEndHUD->CrystalShard->SetText(FText::AsNumber(LocalPlayerState->CrystalShard));
+		GameEndHUD->Crystal->SetText(FText::AsNumber(LocalPlayerState->Crystal));
+	}
+
 }

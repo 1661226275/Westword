@@ -19,7 +19,12 @@ public:
 	virtual void OnRep_Score() override;
 	void AddToScore(float ScoreDelta);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	uint8 KillHunterNum = 0;
+	uint8 KillMonsterNum = 0;
+	uint8 KillBossNum = 0;
+	uint8 Bounty = 0;
+	uint8 CrystalShard = 0;
+	uint8 Crystal = 0;
 private:
 	class ACowBoyCharacter* Character;
 	class ACowBoyPlayerController* Controller;

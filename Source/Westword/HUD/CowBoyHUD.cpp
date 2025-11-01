@@ -13,6 +13,8 @@
 #include "Components/CanvasPanelSlot.h"
 
 
+
+
 void ACowBoyHUD::BeginPlay()
 {
 	Super::BeginPlay();
@@ -31,6 +33,8 @@ void ACowBoyHUD::AddCharacterOverlay()
 
 	}
 }
+
+
 
 void ACowBoyHUD::AddCharacterDeBuffWidget()
 {
