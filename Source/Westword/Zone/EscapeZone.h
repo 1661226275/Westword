@@ -26,9 +26,29 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnSphereEndOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
+
 private:
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* ZoneSphere;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* StaticMeshComponent;
+
+	FTimerHandle LeaveTimerHandle;
+
+	// 计时器完成回调函数
+	UFUNCTION()
+	void OnEscapeTimerComplete();
+
+	// 当前在区域内的角色
+	class ACowBoyCharacter* OverlappingCharacter;
+
 
 public:	
 	

@@ -51,6 +51,11 @@ public:
 	// 初始化友方显示
 	UFUNCTION()
 	void InitializeFriendlyNameplates();
+
+	/*
+	* 结算界面
+	*/
+	void SetGameEndHUD();
 	
 protected:
 
@@ -102,10 +107,18 @@ private:
 	/*
 	* Return to main menu
 	*/
-	UPROPERTY(EditAnywhere,Category = HUD)
+	UPROPERTY(EditAnywhere,Category = "HUD")
 	TSubclassOf<class UUserWidget>ReturnToMainMenuWidget;
 	UPROPERTY()
 	class UReturnToMainMenu* ReturnToMainMenu;
+
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UUserWidget>  GameEndClass;
+	UPROPERTY()
+	class UGameEnd* GameEndHUD;
+	
+
+
 	bool bReturnToMainMenuOpen = false;
 
 	float MatchTime = 0.f;

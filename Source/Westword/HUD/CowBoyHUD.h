@@ -42,6 +42,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Announcements")
 	TSubclassOf<UUserWidget> AnnouncementClass;
 
+
 	UPROPERTY()
 	class UAnnouncement* Announcement;
 
@@ -60,6 +61,8 @@ public:
 	void RemoveCharacterHurtHUD();
 	void AddDamageEffect();
 	void AddElimAnnouncement(FString Attacker,FString Victim);
+	
+	
 protected:
 	virtual void BeginPlay() override;
 	
