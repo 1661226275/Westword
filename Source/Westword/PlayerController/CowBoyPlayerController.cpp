@@ -590,6 +590,15 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 
 void ACowBoyPlayerController::SetGameEndHUD()
 {
+
+	//Òþ²Ø½ÇÉ«
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn)
+	{
+		ControlledPawn->SetActorHiddenInGame(true);
+		ControlledPawn->SetActorEnableCollision(false);
+	}
+
 	LocalPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<ACowBoyPlayerState>();
 	if (!LocalPlayerState) return;
 	GameEndHUD = CreateWidget<UGameEnd>(this, GameEndClass);

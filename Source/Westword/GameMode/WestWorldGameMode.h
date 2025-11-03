@@ -23,6 +23,8 @@ public:
 	AWestWorldGameMode();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PlayerEliminated(class ACowBoyCharacter* ElimmedCharacter, class ACowBoyPlayerController* VictimController,AController* AttackController);
+	UFUNCTION(BlueprintCallable)
+	void EnemyEliminated(class AActor* ElimmedEnemy,  class AController* VictimController, AController* AttackController,bool bIsBoss);
 	virtual void RequestRespawn(class ACharacter* ElimmedCharacter, class AController* ElimmedController);
 	void PlayerLeftGame(class ACowBoyPlayerState* PlayerLeaving);
 	UPROPERTY(EditDefaultsOnly)

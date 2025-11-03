@@ -73,6 +73,14 @@ void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, AC
 	if (AttackerPlayerState && VictimPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+		AttackerPlayerState->KillHunterNum = AttackerPlayerState->KillHunterNum + 1.f;
+		AttackerPlayerState->Bounty += VictimPlayerState->Bounty;
+		AttackerPlayerState->CrystalShard += VictimPlayerState->CrystalShard;
+		AttackerPlayerState->Crystal += VictimPlayerState->Crystal;
+		VictimPlayerState->Bounty = 0.f;
+		VictimPlayerState->CrystalShard = 0.f;
+		VictimPlayerState->Crystal = 0.f;
+
 	}
 	if (ElimmedCharacter)
 	{
@@ -94,6 +102,30 @@ void AWestWorldGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, AC
 		{
 			CowBoyPlayerController->BroadCastElim(AttackerPlayerState, VictimPlayerState);
 		}
+	}
+}
+
+void AWestWorldGameMode::EnemyEliminated(AActor* ElimmedEnemy, AController* VictimController, AController* AttackController,bool bIsBOSS)
+{
+	ACowBoyPlayerState* AttackerPlayerState = AttackController ? Cast<ACowBoyPlayerState>(AttackController->PlayerState) : nullptr;
+	if (AttackerPlayerState)
+	{
+		if (bIsBOSS)
+		{
+			AttackerPlayerState->AddToScore(5.f);
+			AttackerPlayerState->Bounty += 1000.f;
+			AttackerPlayerState->CrystalShard += 200.f;
+			AttackerPlayerState->Crystal += 1.f;
+		}
+		else
+		{
+			AttackerPlayerState->AddToScore(1.f);
+			AttackerPlayerState->Bounty += 100.f;
+			AttackerPlayerState->CrystalShard += 20.f;
+			AttackerPlayerState->Crystal += 0.f;
+		}
+		
+
 	}
 }
 
