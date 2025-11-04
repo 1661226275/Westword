@@ -16,5 +16,9 @@ class WESTWORD_API ALobbyGameMode : public AGameMode
 
 public:
 	virtual void PostLogin(APlayerController*NewPlayer) override;
+
+private:
+	UFUNCTION(BlueprintCallable)
+	void StartGame();
 	
 };
