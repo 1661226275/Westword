@@ -63,6 +63,12 @@ void ACowBoyPlayerController::BeginPlay()
 
 	ServerCheckMatchState();
 	CowboyHUD = Cast<ACowBoyHUD>(GetHUD());
+	if (IsLocalController())
+	{
+		FInputModeGameOnly InputModeData;
+		SetInputMode(InputModeData);
+		SetShowMouseCursor(false);
+	}
 	
 	
 }
