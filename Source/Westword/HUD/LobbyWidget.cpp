@@ -71,7 +71,7 @@ void ULobbyWidget::RoundWeaponButtonClicked()
 	{
 		TotalBounty = TotalBounty - 200;
 	}
-	LastCowBoyCost = 200;
+	LastWeaponCost = 200;
 	SetBounty(TotalBounty);
 	ALobbyPlayerController* PC = Cast<ALobbyPlayerController>(GetOwningPlayer());
 	if (PC)
@@ -90,7 +90,7 @@ void ULobbyWidget::RIderWeaponButtonClicked()
 	{
 		TotalBounty = TotalBounty - 500;
 	}
-	LastCowBoyCost = 500;
+	LastWeaponCost = 500;
 	SetBounty(TotalBounty);
 	ALobbyPlayerController* PC = Cast<ALobbyPlayerController>(GetOwningPlayer());
 	if (PC)
