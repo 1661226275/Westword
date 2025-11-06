@@ -340,9 +340,6 @@ void ACowBoyCharacter::PlayDieMontage()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
-		FString Caller = HasAuthority() ? TEXT("Server") : TEXT("Client");
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
-			FString::Printf(TEXT("PlayDieMontage - Called by: %s"), *Caller));
 		AnimInstance->Montage_Play(DieMontage);
 		FName SectionName = FName("DieRight");
 		AnimInstance->Montage_JumpToSection(SectionName);
@@ -447,12 +444,7 @@ void ACowBoyCharacter::Elim(bool bPlayerLeftGame)
 	}
 	if (Flag)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString("Flag Dropped"));
 		Flag->Dropped();
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString("NoFlag"));
 	}
 	MultCastElim( bPlayerLeftGame);
 	
@@ -569,7 +561,7 @@ void ACowBoyCharacter::OnRep_Health(float LastHealth)
 {
 
 	UpdateHUDHealth();
-	if (Health < LastHealth)
+	if (Health < LastHealth && Health>0)
 	{
 		PlayHitReactMontage();
 		CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;

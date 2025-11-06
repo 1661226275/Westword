@@ -34,8 +34,8 @@ void UCowBoyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	RightInput = CowBoyCharacter->GetRightInput();
 	CowBoyCharacter->SetForWardInput(0);
 	CowBoyCharacter->SetRightInput(0);
-	bIsAming = CowBoyCharacter->IsAiming();
 	bIsDead = CowBoyCharacter->GetCombatComponent()->IsAlive();
+	bIsAming = CowBoyCharacter->IsAiming();
 	bIsSprint = CowBoyCharacter->IsSprinting();
 	bIsMovingInput = CowBoyCharacter->GetCharacterMovement()->IsWalking();
 	Direction = CalculateDirection(Velocity, CowBoyCharacter->GetActorRotation());
