@@ -16,6 +16,7 @@
 #include "Components/Image.h"
 #include "PlayerState/CowBoyPlayerState.h"
 #include "HUD/ReturnToMainMenu.h"
+#include "HUD/MiniMap.h"
 
 
 void ACowBoyPlayerController::BroadCastElim(APlayerState* Attacker, APlayerState* Victim)
@@ -532,7 +533,7 @@ void ACowBoyPlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 
 	// 延迟一点时间确保所有PlayerState都已复制
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACowBoyPlayerController::InitializeFriendlyNameplates, 1.f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACowBoyPlayerController::InitializeFriendlyNameplates, 5.f, false);
 	
 }
 
@@ -564,6 +565,12 @@ void ACowBoyPlayerController::HandleCooldown()
 
 void ACowBoyPlayerController::InitializeFriendlyNameplates()
 {
+	// 首先检查CowboyHUD是否有效
+	if (!CowboyHUD || !IsValid(CowboyHUD))
+	{
+		UE_LOG(LogTemp, Error, TEXT("CowboyHUD is null or invalid in InitializeFriendlyNameplates"));
+		return;
+	}
 	
 	LocalPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<ACowBoyPlayerState>();
 	if (!LocalPlayerState) return;
@@ -581,6 +588,7 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 			// 检查是否是友方
 			if (CowBoyPlayerState->GetTeam() == LocalPlayerState->GetTeam())
 			{
+				Friendlies.Add(CowBoyPlayerState);
 				// 获取对应的Character
 				ACowBoyCharacter* OtherCharacter = Cast<ACowBoyCharacter>(CowBoyPlayerState->GetPawn());
 				if (OtherCharacter)
@@ -591,6 +599,12 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 				
 			}
 		}
+	}
+	//初始化小地图
+	if (CowboyHUD) CowboyHUD->CreateMiniMapWidget();
+	if (CowboyHUD->MiniMap)
+	{
+		CowboyHUD->MiniMap->CreateFriendIcon(Friendlies);
 	}
 }
 

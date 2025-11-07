@@ -15,6 +15,8 @@
 
 
 
+
+
 void ACowBoyHUD::BeginPlay()
 {
 	Super::BeginPlay();
@@ -125,6 +127,8 @@ void ACowBoyHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 	}
 }
 
+
+
 void ACowBoyHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
 {
 	if (MsgToRemove)
@@ -204,6 +208,9 @@ void ACowBoyHUD::DrawCrosshairs(UTexture2D* Texture, FVector2D ViewportCenter, F
 		CrosshairColor
 	);
 }
+void ACowBoyHUD::CreateMiniMapWidget_Implementation()
+{
 
+}
 
 

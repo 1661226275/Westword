@@ -42,6 +42,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Announcements")
 	TSubclassOf<UUserWidget> AnnouncementClass;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Announcements")
+	TSubclassOf<UUserWidget> MiniMapClass;
+	UPROPERTY(BlueprintReadWrite)
+	class UMiniMap* MiniMap;
 
 	UPROPERTY()
 	class UAnnouncement* Announcement;
@@ -62,6 +66,10 @@ public:
 	void AddDamageEffect();
 	void AddElimAnnouncement(FString Attacker,FString Victim);
 	
+	UFUNCTION(BlueprintNativeEvent, Category = "NativeEvent")
+	void CreateMiniMapWidget();
+
+	void CreateMiniMapWidget_Implementation();
 	
 protected:
 	virtual void BeginPlay() override;

@@ -35,6 +35,8 @@ public:
 	void DestoryCharacterHurtHUD();
 	void AddDamageEffect();
 
+	TArray<class ACowBoyPlayerState*> GetFriendlyPlayers() const{ return Friendlies; }
+
 	void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -99,6 +101,8 @@ protected:
 
 	UFUNCTION(Client,Reliable)
 	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
+
+	TArray<ACowBoyPlayerState*> Friendlies;
 
 private:
 	class ACowBoyHUD* CowboyHUD;
