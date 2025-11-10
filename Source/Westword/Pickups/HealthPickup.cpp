@@ -5,36 +5,63 @@
 #include "HealthPickup.h"
 #include "Character/CowBoyCharacter.h"
 
-AHealthPickup::AHealthPickup()
-{
-	bReplicates = true;
-}
+
 
 void AHealthPickup::Interact(APawn* User)
 {
 	//播放交互动画
-	//交互效果，只在服务器上调用
-	InteractEffect(User);
+	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(User);
+	
+	if (Character)
+	{
+		UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+		if (AnimInstance&&InteractorAnimation&& Character->PlayingMantogeState==EPlayingMantoge::PlayingMantoge_Blank)
+		{
+			AnimInstance->Montage_Play(InteractorAnimation);
+			FName SectionName = FName("Healing");
+			AnimInstance->Montage_JumpToSection(SectionName, InteractorAnimation);
+			Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_UsingAbility);
+		}
+	}
+	
 	
 }
 
 void AHealthPickup::InteractEffect(APawn* User)
 {
-	//交互效果，只在服务器上调用
-	ServerInteractEffect(User);
-}
+	
 
-void AHealthPickup::ServerInteractEffect_Implementation(APawn* User)
-{
-	ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(User);
-	if(CowBoyCharacter)
+	FString RoleString = FString::Printf(TEXT(" HasAuthority: %s"),
+		 HasAuthority() ? TEXT("True") : TEXT("False"));
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, RoleString);
+	//交互效果，只在服务器上调用
+	if (HasAuthority())
 	{
-		UBuffeComponent* Buff = CowBoyCharacter->GetBuffComponent();
-		if(Buff)
+		
+		ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(User);
+		
+		if (CowBoyCharacter)
 		{
-			Buff->Heal(HealthAmount, HealingTime);
+			UBuffeComponent* Buff = CowBoyCharacter->GetBuffComponent();
+			if (Buff)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("HealingServerInteractEffect"));
+				Buff->Heal(HealthAmount, HealingTime);
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("buff is null"));
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("CowBoyCharacter is null"));
 		}
 	}
 }
+
+
+
 
 

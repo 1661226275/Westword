@@ -19,6 +19,7 @@ public:
 	virtual void Destroyed() override;
 	void SetInteractWidgetVisibility(bool bIsVisible);
 	virtual void Interact(APawn* User);
+	UFUNCTION(BlueprintCallable)
 	virtual void InteractEffect(APawn* User);
 
 protected:
@@ -39,6 +40,9 @@ protected:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
+
+	UPROPERTY(EditAnywhere, Category = "InteractorAnim")
+	class UAnimMontage*InteractorAnimation;
 
 private:
 	UPROPERTY(EditAnywhere)

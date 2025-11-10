@@ -15,18 +15,19 @@ class WESTWORD_API ABeastInstinct : public AActivateSkillBase
 	GENERATED_BODY()
 
 public:
+	ABeastInstinct();
 	virtual void ActivateSkill(class APawn* Character) override;
 	virtual void SkillEffectFunction(class APawn* Character) override;
 	virtual void DeactivateSkill(class APawn* Character) override;
 	void FinishCooldown();
+	void ServerActivateSkill(class APawn* Character);
 	
 protected:
 
 
 private:
 
-	UFUNCTION(Server, Reliable)
-	void ServerActivateSkill(class APawn* Character);
+	
 	UFUNCTION(Server, Reliable)
 	void ServerDeactivateSkill(class APawn* Character);
 	UFUNCTION(NetMulticast, Reliable)

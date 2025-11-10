@@ -15,7 +15,7 @@ class WESTWORD_API AHealthPickup : public APickup
 	GENERATED_BODY()
 
 public:
-	AHealthPickup();
+	
 	virtual void Interact(APawn* User) override;
 	virtual void InteractEffect(APawn* User) override;
 protected:
@@ -27,9 +27,6 @@ private:
 	float HealingTime = 5.f;
 
 
-
-	UFUNCTION(Server,Reliable)
-	void ServerInteractEffect(APawn* User);
 
 	
 };

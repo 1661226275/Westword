@@ -15,13 +15,14 @@ void UBuffeComponent::Heal(float HealAmount, float HealingTime)
 {
 	bHealing = true;
 	HealRate = HealAmount / HealingTime;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("Heal"));
 	AmountToHeal += HealAmount;
 }
 
 void UBuffeComponent::HealRampUp(float DeltaTime)
 {
 	if (!bHealing || Character==nullptr||Character->IsElimmed()) return;
-
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("HealRampUp"));
 	const float HealThisFrame = HealRate * DeltaTime;
 	Character->SetHealth(FMath::Clamp(Character->GetHealth() + HealThisFrame, 0.f, Character->GetMaxHealth()));
 	Character->UpdateHUDHealth();

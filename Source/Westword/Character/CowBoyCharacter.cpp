@@ -179,6 +179,7 @@ void ACowBoyCharacter::PostInitializeComponents()
 	}
 	if (Buff)
 	{
+		Combat->PrimaryComponentTick.bCanEverTick = true;
 		Buff->Character = this;
 		Buff->SetInitialBaseSpeed(GetCharacterMovement()->MaxWalkSpeed);
 		Buff->SetInitialJumpZVelocity(GetCharacterMovement()->JumpZVelocity);
@@ -270,7 +271,7 @@ void ACowBoyCharacter::SetOverLapInteractActor(APickup* Actor)
 {
 	if (OverLapInteractActor)
 	{
-		Actor->SetInteractWidgetVisibility(false);
+		OverLapInteractActor->SetInteractWidgetVisibility(false);
 	}
 	OverLapInteractActor = Actor;
 	if (IsLocallyControlled())
@@ -528,6 +529,20 @@ void ACowBoyCharacter::PlayDeBuffReactMontage()
 	}
 }
 
+void ACowBoyCharacter::ServerInteracte_Implementation()
+{
+	MulticastInteracte();
+}
+
+void ACowBoyCharacter::MulticastInteracte_Implementation()
+{
+	if (OverLapInteractActor)
+	{
+		OverLapInteractActor->Interact(this);
+	}
+	
+}
+
 void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
 	WestWorldGameMode = WestWorldGameMode == nullptr ? GetWorld()->GetAuthGameMode<AWestWorldGameMode>() : WestWorldGameMode;
@@ -586,9 +601,10 @@ void ACowBoyCharacter::ServerHandleSanChange_Implementation(float DeltaSan)
 	{
 		// 腐化值升高
 		// 显示HUD特效（服务器本地玩家）
+		San = FMath::Clamp(San + DeltaSan, 0, MaxSan);
 		if (IsLocallyControlled())
 		{
-			San = FMath::Clamp(San + DeltaSan, 0, MaxSan);
+			
 			UpdateHUDSan();
 			CowBoyController = CowBoyController == nullptr ? Cast<ACowBoyPlayerController>(GetController()) : CowBoyController;
 			if (CowBoyController)
@@ -762,14 +778,13 @@ void ACowBoyCharacter::ActivateSkill2()
 {
 	if (PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Blank)
 	{
-		if (BeastInstinct)
-		{
-			BeastInstinct->ActivateSkill(this);
-		}
-		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NOSkill2"));
-		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("ActivateSkill2"));
+		ServerActivateSkill2();
 		
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Skill2 PlayingMantoge is not blank"));
 	}
 	
 }
@@ -988,7 +1003,7 @@ void ACowBoyCharacter::PickUpBottonPressed()
 {
 	if (OverLapInteractActor)
 	{
-		OverLapInteractActor->Interact(this);
+		ServerInteracte();
 	}
 	else if (OverLapWeapon)
 	{
@@ -1029,6 +1044,16 @@ void ACowBoyCharacter::Pickup()
 	if (HolsterSocket)
 	{
 		HolsterSocket->AttachActor(Flag, GetMesh());
+	}
+}
+void ACowBoyCharacter::ServerActivateSkill2_Implementation()
+{
+	if (BeastInstinct)
+	{
+		BeastInstinct->ServerActivateSkill(this);
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NOSkill2"));
 	}
 }
 void ACowBoyCharacter::AimBottonPressed()

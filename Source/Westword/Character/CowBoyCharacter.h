@@ -39,8 +39,8 @@ public:
 	//重叠武器设置函数,这个函数只会在服务器上被调用
 	void SetOverLapWeapon(AWeaponBase* Weapon);
 	void SetOverLapInteractActor(class APickup* Actor);
-
-	
+	UFUNCTION(BlueprintCallable)
+	APickup* GetOverLapInteractActor() { return OverLapInteractActor; }
 
 	
 
@@ -134,6 +134,12 @@ protected:
 	void ReloadBottonPressed();
 	void PlayHitReactMontage();
 	void PlayDeBuffReactMontage();
+
+	UFUNCTION(Server,Reliable)
+	void ServerInteracte();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastInteracte();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
@@ -255,6 +261,8 @@ private:
 	UPROPERTY(ReplicatedUsing = RepNotify_OverLapInteractActor)
 	class APickup* OverLapInteractActor;
 
+	
+
 	//网络复制通知
 	UFUNCTION()
 	void RepNotify_OverLapWeapon(AWeaponBase* LastWeapon);
@@ -375,6 +383,9 @@ public:
 	ULagCompenstionComponent* GetLagCompensation() const { return LagCompensation; }
 
 	void Pickup();
+
+	UFUNCTION(Server,Reliable)
+	void ServerActivateSkill2();
 };
 
 
