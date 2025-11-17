@@ -87,7 +87,8 @@ void ULagCompenstionComponent::ProjectileServerScoreRequest_Implementation(ACowB
 			WeaponDamage = Cast<ARangeWeapon>(Character->GetCombatComponent()->GetEquippedWeapon())->GetProjectileDamage();
 			WeaponHeadShotDamage = Cast<ARangeWeapon>(Character->GetCombatComponent()->GetEquippedWeapon())->GetProjectileHeadShotDamage();
 		}
-		const float Damage = Confirm.bHeadShot ? WeaponHeadShotDamage : WeaponDamage;
+		const float Damage = Confirm.bHeadShot ? (HitCharacter->GetHealth()+1) : WeaponDamage;
+		HitCharacter->SetShootHead(Confirm.bHeadShot);
 		UGameplayStatics::ApplyDamage(
 			HitCharacter,
 			Damage,

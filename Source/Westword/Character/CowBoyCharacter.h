@@ -6,7 +6,7 @@
 #include "DataType/EnumData.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/RangeWeapon.h"
-#include "Weapon/MeleeWeaponBase.h"
+#include "Weapon/MeleeWeaponbase.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/CombatComponent.h"
 #include "Components/BuffeComponent.h"
@@ -88,7 +88,7 @@ public:
 
 	void SetUpNamePlate(const FString& PlayerName);
 	void SetNameWidgetVisibility(bool bIsVisible) { if (NameWidget) NameWidget->SetVisibility(bIsVisible); }
-
+	void SetShootHead(bool value) { bShootHead = value; }
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -339,6 +339,8 @@ private:
 	float MaxSprintSpeed = 500.f;
 
 	bool bElimmed = false;
+
+	UPROPERTY(Replicated)
 	bool bShootHead = false;
 
 	UPROPERTY(Replicated)

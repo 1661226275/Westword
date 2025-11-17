@@ -166,6 +166,7 @@ void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ACowBoyCharacter, BeastInstinct);
 	DOREPLIFETIME(ACowBoyCharacter, bIsSprinting);
 	DOREPLIFETIME(ACowBoyCharacter, Flag);
+	DOREPLIFETIME(ACowBoyCharacter, bShootHead);
 	
 }
 
