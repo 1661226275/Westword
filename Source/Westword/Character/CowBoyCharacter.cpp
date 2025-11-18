@@ -195,6 +195,17 @@ void ACowBoyCharacter::PostInitializeComponents()
 	}
 }
 
+void ACowBoyCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	CowBoyPlayerState = CowBoyPlayerState == nullptr ? Cast<ACowBoyPlayerState>(GetPlayerState()) : CowBoyPlayerState;
+	if (CowBoyPlayerState)
+	{
+		CowBoyPlayerState->SetCowBoyCharacter(this);
+		CowBoyPlayerState->SetCowBoyPlayerController(Cast<ACowBoyPlayerController>(NewController));
+	}
+}
+
 // Called when the game starts or when spawned
 void ACowBoyCharacter::BeginPlay()
 {
@@ -359,6 +370,15 @@ void ACowBoyCharacter::PlayDieShootHeadMontage()
 		FName SectionName = FName("DieShootHeadBack");
 		AnimInstance->Montage_JumpToSection(SectionName);
 		SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_Death);
+	}
+}
+
+void ACowBoyCharacter::SetHealth(float NewHealth)
+{
+	Health = NewHealth;
+	if(HasAuthority())
+	{
+		OnHealthChanged.Broadcast(this, NewHealth);
 	}
 }
 
@@ -549,7 +569,8 @@ void ACowBoyCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 	WestWorldGameMode = WestWorldGameMode == nullptr ? GetWorld()->GetAuthGameMode<AWestWorldGameMode>() : WestWorldGameMode;
 	if (bElimmed || WestWorldGameMode == nullptr) return;
 	Damage = WestWorldGameMode->CalculateDamage(InstigatedBy,Controller,Damage);
-;	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	OnHealthChanged.Broadcast(this, Health);
 	UpdateHUDHealth();
 	//to do 
 	//根据伤害的类型去更新腐化值
@@ -603,6 +624,7 @@ void ACowBoyCharacter::ServerHandleSanChange_Implementation(float DeltaSan)
 		// 腐化值升高
 		// 显示HUD特效（服务器本地玩家）
 		San = FMath::Clamp(San + DeltaSan, 0, MaxSan);
+		OnSansChanged.Broadcast(this, San);
 		if (IsLocallyControlled())
 		{
 			
@@ -642,7 +664,9 @@ void ACowBoyCharacter::ServerHandleSanChange_Implementation(float DeltaSan)
 				GetWorldTimerManager().ClearTimer(TimerHandle_SanDamage);
 			}
 		}
+		OnSansChanged.Broadcast(this, San);
 	}
+	
 }
 
 void ACowBoyCharacter::ReceiveSanDamage()
@@ -779,13 +803,13 @@ void ACowBoyCharacter::ActivateSkill2()
 {
 	if (PlayingMantogeState == EPlayingMantoge::PlayingMantoge_Blank)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("ActivateSkill2"));
+		
 		ServerActivateSkill2();
 		
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Skill2 PlayingMantoge is not blank"));
+		
 	}
 	
 }

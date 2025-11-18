@@ -7,6 +7,8 @@
 #include "DataType/Team.h"
 #include "CowBoyPlayerState.generated.h"
 
+// 委托，当Character设置时通知
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterSet, ACowBoyCharacter*, Character);
 /**
  * 
  */
@@ -25,6 +27,13 @@ public:
 	float Bounty = 0;
 	float CrystalShard = 0;
 	float Crystal = 0;
+
+	
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnCharacterSet OnCharacterSet;
+
+
 private:
 	class ACowBoyCharacter* Character;
 	class ACowBoyPlayerController* Controller;
@@ -35,4 +44,12 @@ private:
 public:
 	ETeam GetTeam()const { return Team; }
 	void SetTeam(ETeam TEamToSet) { Team = TEamToSet; }
+
+	//设置Character并绑定委托
+	void SetCowBoyCharacter(ACowBoyCharacter* NewCharacter);
+	void SetCowBoyPlayerController(ACowBoyPlayerController* NewController);
+
+	ACowBoyCharacter* GetCowBoyCharacter() const { return Character; }
+	ACowBoyPlayerController* GetCowBoyPlayerController() const { return Controller; }
+
 };

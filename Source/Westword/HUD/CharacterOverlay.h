@@ -15,6 +15,10 @@ class WESTWORD_API UCharacterOverlay : public UUserWidget
 	GENERATED_BODY()
 
 public:
+
+	/*
+	* 自己的UI部分
+	*/
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthBar;
 
@@ -26,6 +30,32 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* SansText;
+
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* SelfPlayerName;
+
+	/*
+	* 队友的UI部分
+	*/
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UCanvasPanel* TeammatePlayerCanvasPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* TeammateHealthBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TeammateHealthText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* TeammateSansBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TeammateSansText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TeammatePlayerName;
+
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreAmount;

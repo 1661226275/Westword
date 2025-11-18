@@ -11,7 +11,8 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/HorizontalBox.h"
 #include "Components/CanvasPanelSlot.h"
-
+#include "Components/CanvasPanel.h"
+#include "PlayerController/CowBoyPlayerController.h"
 
 
 
@@ -32,7 +33,7 @@ void ACowBoyHUD::AddCharacterOverlay()
 	{
 		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
-
+		CharacterOverlay->TeammatePlayerCanvasPanel->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -211,6 +212,18 @@ void ACowBoyHUD::DrawCrosshairs(UTexture2D* Texture, FVector2D ViewportCenter, F
 void ACowBoyHUD::CreateMiniMapWidget_Implementation()
 {
 
+}
+
+void ACowBoyHUD::SetTeammatesUIVisible(bool bIsVisible)
+{
+	if (bIsVisible)
+	{
+		CharacterOverlay->TeammatePlayerCanvasPanel->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		CharacterOverlay->TeammatePlayerCanvasPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 

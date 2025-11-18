@@ -209,7 +209,7 @@ void UCombatComponent::ServerAttack_Implementation(const FVector_NetQuantize& Tr
 void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (Character && Character->IsLocallyControlled()&&!Character->HasAuthority()) return;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString("MultiCastAttack"));
+	
 	LocalAttack(TraceHitTarget);
 	
 
@@ -217,7 +217,7 @@ void UCombatComponent::MultiCastAttack_Implementation(const FVector_NetQuantize&
 
 void UCombatComponent::LocalAttack(const FVector_NetQuantize& TraceHitTarget)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("local att"));
+	
 	switch (EquippedWeapon->GetWeaponType()) {
 	case EWeaponType::WeaponType_Gun:
 	{

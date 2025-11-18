@@ -183,6 +183,19 @@ void ACowBoyPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	}
 }
 
+void ACowBoyPlayerController::Client_UpdateTeammateHealth_Implementation(ACowBoyCharacter* Teammate, float NewHealth)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		const float HealthPercent = NewHealth / Teammate->GetMaxHealth();
+		CowboyHUD->CharacterOverlay->TeammateHealthBar->SetPercent(HealthPercent);
+		FString HealthText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(NewHealth), FMath::CeilToInt(Teammate->GetMaxHealth()));
+		CowboyHUD->CharacterOverlay->TeammateHealthText->SetText(FText::FromString(HealthText));
+	}
+}
+
+
 void ACowBoyPlayerController::SetHUDSan(float San, float MaxSan)
 {
 	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
@@ -200,6 +213,19 @@ void ACowBoyPlayerController::SetHUDSan(float San, float MaxSan)
 		HUDMaxSan = MaxSan;
 	}
 }
+
+void ACowBoyPlayerController::Client_UpdateTeammateSan_Implementation(ACowBoyCharacter* Teammate, float NewSan)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		const float SanPercent = NewSan / Teammate->GetMaxSan();
+		CowboyHUD->CharacterOverlay->TeammateSansBar->SetPercent(SanPercent);
+		FString SanText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(NewSan), FMath::CeilToInt(Teammate->GetMaxSan()));
+		CowboyHUD->CharacterOverlay->TeammateSansText->SetText(FText::FromString(SanText));
+	}
+}
+
 
 void ACowBoyPlayerController::SetHUDScore(float Score)
 {
@@ -278,7 +304,7 @@ void ACowBoyPlayerController::SetMeleeWeaponHUDVisible(bool bIsVisible)
 	{
 		if (bIsVisible)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Black, FString("Set MeleeHud"));
+			
 			CowboyHUD->CharacterOverlay->MeleeWeaponCanvas->SetVisibility(ESlateVisibility::Visible);
 		}
 		else
@@ -319,6 +345,10 @@ void ACowBoyPlayerController::AddDamageEffect()
 	}
 	
 }
+
+
+
+
 
 void ACowBoyPlayerController::OnPossess(APawn* InPawn)
 {
@@ -574,6 +604,7 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 	
 	LocalPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<ACowBoyPlayerState>();
 	if (!LocalPlayerState) return;
+	CowboyHUD->CharacterOverlay->SelfPlayerName->SetText(FText::FromString(LocalPlayerState->GetPlayerName()));
 
 	// ªÒ»°GameState
 	AWestWorldGameState* GameState = Cast<AWestWorldGameState>(GetWorld()->GetGameState());
@@ -596,7 +627,8 @@ void ACowBoyPlayerController::InitializeFriendlyNameplates()
 					OtherCharacter->SetNameWidgetVisibility(true);
 					OtherCharacter->SetUpNamePlate(CowBoyPlayerState->GetPlayerName());
 				}
-				
+				CowboyHUD->CharacterOverlay->TeammatePlayerName->SetText(FText::FromString(CowBoyPlayerState->GetPlayerName()));
+				CowboyHUD->SetTeammatesUIVisible(true);
 			}
 		}
 	}

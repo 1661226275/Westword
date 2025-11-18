@@ -31,10 +31,7 @@ void AHealthPickup::InteractEffect(APawn* User)
 {
 	
 
-	FString RoleString = FString::Printf(TEXT(" HasAuthority: %s"),
-		 HasAuthority() ? TEXT("True") : TEXT("False"));
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, RoleString);
+	
 	//交互效果，只在服务器上调用
 	if (HasAuthority())
 	{
@@ -46,17 +43,17 @@ void AHealthPickup::InteractEffect(APawn* User)
 			UBuffeComponent* Buff = CowBoyCharacter->GetBuffComponent();
 			if (Buff)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("HealingServerInteractEffect"));
+				
 				Buff->Heal(HealthAmount, HealingTime);
 			}
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("buff is null"));
+				
 			}
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("CowBoyCharacter is null"));
+			
 		}
 	}
 }

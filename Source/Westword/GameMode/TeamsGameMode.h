@@ -19,6 +19,15 @@ public:
 
 	virtual float CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)override;
 	virtual void PlayerEliminated(class ACowBoyCharacter* ElimmedCharacter, class ACowBoyPlayerController* VictimController, AController* AttackController) override;
+
+	// 处理队伍成员生命值变更
+	UFUNCTION()
+	void HandleTeammateHealthChanged(ACowBoyCharacter* ChangedCharacter, float NewHealth);
+
+	UFUNCTION()
+	void HandleTeammateSanChanged(ACowBoyCharacter* ChangedCharacter, float NewSan);
+
+	
 protected:
 	virtual void HandleMatchHasStarted() override;
 	

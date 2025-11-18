@@ -170,10 +170,7 @@ void AMeleeWeaponBase::PlayEquipMontage()
         FName SectionName = FName("EquipMelee");
         AnimInstance->Montage_JumpToSection(SectionName, EquipAnimMontage);
         Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_EquipWeapon);
-        if (GEngine)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MeleeWeapon Playing Equip Montage")));
-        }
+        
     }
 }
 
@@ -189,9 +186,6 @@ void AMeleeWeaponBase::PlayUnEquipMontage()
         FName SectionName = FName("UnEquipMelee");
         AnimInstance->Montage_JumpToSection(SectionName, UnequipAnimMontage);
         Character->SetPlayingMantogeState(EPlayingMantoge::PlayingMantoge_UnEquipWeapon);
-        if (GEngine)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("RangeWeapon Playing UnEquip Montage")));
-        }
+        
     }
 }

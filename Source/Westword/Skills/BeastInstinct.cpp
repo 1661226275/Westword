@@ -18,7 +18,7 @@ void ABeastInstinct::ActivateSkill(APawn* Character)
 
 void ABeastInstinct::ServerActivateSkill(APawn* Character)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Server-ActivateSkill2"));
+	
 	//技能释放条件判断
 	if (bIsCooldown)
 	{
@@ -26,7 +26,7 @@ void ABeastInstinct::ServerActivateSkill(APawn* Character)
 		return;
 	}
 	bIsCooldown = true;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("CoolDownTime: %.2f"), SkillCooldown));
+	
 	Cast<ACowBoyCharacter>(Character)->GetWorldTimerManager().SetTimer(TimerHandle_Cooldown, this, &ABeastInstinct::FinishCooldown, SkillCooldown, false);
 	MultiCastActivateSkill(Character);
 }
@@ -56,7 +56,7 @@ void ABeastInstinct::SkillEffectFunction(APawn* Character)
 	{
 		if (HasAuthority())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Server-SkillEffectFunction"));
+			
 			UBuffeComponent* Buff = CowBoyCharacter->GetBuffComponent();
 			if (Buff)
 			{

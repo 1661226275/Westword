@@ -4,6 +4,7 @@
 #include "PlayerState/CowBoyPlayerState.h"
 #include "Character/CowBoyCharacter.h"
 #include "PlayerController/CowBoyPlayerController.h"
+#include "GameMode/TeamsGameMode.h"
 
 void ACowBoyPlayerState::OnRep_Score()
 {
@@ -39,4 +40,21 @@ void ACowBoyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACowBoyPlayerState, Team);
+}
+
+void ACowBoyPlayerState::SetCowBoyCharacter(ACowBoyCharacter* NewCharacter)
+{
+	Character = NewCharacter;
+
+	if (Character)
+	{
+		// 广播委托通知Character已设置
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Character Set in PlayerState")));
+		OnCharacterSet.Broadcast(Character);
+	}
+}
+
+void ACowBoyPlayerState::SetCowBoyPlayerController(ACowBoyPlayerController* NewController)
+{
+	Controller = NewController;
 }

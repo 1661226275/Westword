@@ -70,6 +70,9 @@ public:
 	void CreateMiniMapWidget();
 
 	void CreateMiniMapWidget_Implementation();
+
+	UFUNCTION()
+	void SetTeammatesUIVisible(bool bIsVisible);
 	
 protected:
 	virtual void BeginPlay() override;

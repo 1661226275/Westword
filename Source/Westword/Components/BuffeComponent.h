@@ -29,8 +29,11 @@ private:
 	* Heal buff
 	*/
 	bool bHealing = false;
-	float HealRate = 0.f;
-	float AmountToHeal = 0.f;
+	float HealPerSecond = 0.f;
+	float TotalHealAmount = 0.f;
+	float RemainingHealingTime = 0.f;
+	FTimerHandle HealTimerHandle;
+	void HealTick();  // 每秒执行的治疗函数
 
 	/*
 	* speed buff
@@ -50,7 +53,7 @@ private:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	void HealRampUp(float DeltaTime);
+	
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

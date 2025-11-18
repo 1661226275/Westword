@@ -16,6 +16,8 @@
 #include "CowBoyCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, ACowBoyCharacter*, Character, float, NewHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSansChanged, ACowBoyCharacter*, Character, float, NewSan);
 
 UCLASS(Blueprintable, BlueprintType)
 class WESTWORD_API ACowBoyCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -28,7 +30,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
-
+	virtual void PossessedBy(AController* NewController) override;
 	UFUNCTION(BlueprintCallable)
 	void SetPlayingMantogeState(EPlayingMantoge NewState) { PlayingMantogeState = NewState; }
 	UFUNCTION(BlueprintCallable)
@@ -89,6 +91,11 @@ public:
 	void SetUpNamePlate(const FString& PlayerName);
 	void SetNameWidgetVisibility(bool bIsVisible) { if (NameWidget) NameWidget->SetVisibility(bIsVisible); }
 	void SetShootHead(bool value) { bShootHead = value; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FOnHealthChanged OnHealthChanged;
+
+	FOnSansChanged OnSansChanged;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -376,7 +383,7 @@ public:
 	float GetMaxHealth() const { return MaxHealth; }
 	float GetSan() const { return San; }
 	float GetMaxSan() const { return MaxSan; }
-	void SetHealth(float NewHealth) { Health = NewHealth; }
+	void SetHealth(float NewHealth);
 	void SetMaxWalkSpeed(float NewSpeed) { MaxWalkSpeed = NewSpeed; }
 	void SetMaxSprintSpeed(float NewSpeed) { MaxSprintSpeed = NewSpeed; }
 	bool IsSprinting() const {return bIsSprinting;}

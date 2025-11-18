@@ -56,11 +56,6 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 void AWeaponBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ACowBoyCharacter* CowBoyCharacter = Cast<ACowBoyCharacter>(OtherActor);
-	//ÈÕÖ¾Êä³ö
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, GetName());
-	}
 	if (CowBoyCharacter && PickUpWeight)
 	{
 		CowBoyCharacter->SetOverLapWeapon(this);

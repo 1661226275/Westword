@@ -35,6 +35,14 @@ public:
 	void DestoryCharacterHurtHUD();
 	void AddDamageEffect();
 
+	// 更新队友生命值UI
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateTeammateHealth(ACowBoyCharacter* Teammate, float NewHealth);
+
+	//更新队友理智UI
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateTeammateSan(ACowBoyCharacter* Teammate, float NewSan);
+
 	TArray<class ACowBoyPlayerState*> GetFriendlyPlayers() const{ return Friendlies; }
 
 	void OnPossess(APawn* InPawn) override;
@@ -53,6 +61,7 @@ public:
 	// 初始化友方显示
 	UFUNCTION()
 	void InitializeFriendlyNameplates();
+
 
 	/*
 	* 结算界面
@@ -103,6 +112,7 @@ protected:
 	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
 
 	TArray<ACowBoyPlayerState*> Friendlies;
+
 
 private:
 	class ACowBoyHUD* CowboyHUD;
