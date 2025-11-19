@@ -22,6 +22,7 @@ void ARangeWeapon::PlayFireMontage(bool bIsAiming)
 
 void ARangeWeapon::Fire(const FVector& HitTarget)
 {
+	
 	SpendRound();
 	
 	APawn* InstigatorPawn = Cast<APawn>(GetOwner());

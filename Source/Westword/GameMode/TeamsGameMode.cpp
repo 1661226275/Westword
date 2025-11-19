@@ -93,7 +93,7 @@ void ATeamsGameMode::HandleMatchHasStarted()
 		for (auto PState : WGameState->PlayerArray)
 		{
 			ACowBoyPlayerState* CPState = Cast<ACowBoyPlayerState>(PState.Get());
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Assigning Teams for Player: %s"), *CPState->GetPlayerName()));
+			
 			CPState->GetCowBoyCharacter()->OnHealthChanged.AddDynamic(this, &ATeamsGameMode::HandleTeammateHealthChanged);
 			CPState->GetCowBoyCharacter()->OnSansChanged.AddDynamic(this, &ATeamsGameMode::HandleTeammateSanChanged);
 			if (CPState && CPState->GetTeam() == ETeam::ET_NoTeam)
@@ -101,17 +101,44 @@ void ATeamsGameMode::HandleMatchHasStarted()
 				if (WGameState->BlueTeam.Num() >= WGameState->RedTeam.Num())
 				{
 					WGameState->RedTeam.AddUnique(CPState);
+					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Assigning %s to Red Team"), *CPState->GetPlayerName()));
 					CPState->SetTeam(ETeam::ET_RedTeam);
 				}
 				else
 				{
 					WGameState->BlueTeam.AddUnique(CPState);
+					GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, FString::Printf(TEXT("Assigning %s to blue Team"), *CPState->GetPlayerName()));
 					CPState->SetTeam(ETeam::ET_BlueTeam);
 				}
 			}
 			
 		}
 		
+	}
+}
+
+void ATeamsGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	AWestWorldGameState* WGameState = Cast<AWestWorldGameState>(UGameplayStatics::GetGameState(this));
+	ACowBoyPlayerState* CPState = NewPlayer->GetPlayerState<ACowBoyPlayerState>();
+	if (WGameState && CPState)
+	{
+		if (CPState->GetTeam() == ETeam::ET_NoTeam)
+		{
+			if (WGameState->BlueTeam.Num() >= WGameState->RedTeam.Num())
+			{
+				WGameState->RedTeam.AddUnique(CPState);
+				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Assigning %s to Red Team"), *CPState->GetPlayerName()));
+				CPState->SetTeam(ETeam::ET_RedTeam);
+			}
+			else
+			{
+				WGameState->BlueTeam.AddUnique(CPState);
+				GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green, FString::Printf(TEXT("Assigning %s to blue Team"), *CPState->GetPlayerName()));
+				CPState->SetTeam(ETeam::ET_BlueTeam);
+			}
+		}
 	}
 }
 
@@ -135,3 +162,5 @@ void ATeamsGameMode::PlayerEliminated(ACowBoyCharacter* ElimmedCharacter, ACowBo
 {
 	Super::PlayerEliminated(ElimmedCharacter, VictimController, AttackController);
 }
+
+

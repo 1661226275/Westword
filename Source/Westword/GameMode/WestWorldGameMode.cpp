@@ -112,14 +112,14 @@ void AWestWorldGameMode::EnemyEliminated(AActor* ElimmedEnemy, AController* Vict
 	{
 		if (bIsBOSS)
 		{
-			AttackerPlayerState->AddToScore(5.f);
+			AttackerPlayerState->KillBossNum = AttackerPlayerState->KillBossNum + 1.f;
 			AttackerPlayerState->Bounty += 1000.f;
 			AttackerPlayerState->CrystalShard += 200.f;
 			AttackerPlayerState->Crystal += 1.f;
 		}
 		else
 		{
-			AttackerPlayerState->AddToScore(1.f);
+			AttackerPlayerState->KillMonsterNum++;
 			AttackerPlayerState->Bounty += 100.f;
 			AttackerPlayerState->CrystalShard += 20.f;
 			AttackerPlayerState->Crystal += 0.f;
