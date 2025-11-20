@@ -14,8 +14,12 @@ class WESTWORD_API AEscapeZone : public AActor
 public:	
 	AEscapeZone();
 
+	void UpdateEscapeTimer();
+
 protected:
 	virtual void BeginPlay() override;
+
+
 
 	UFUNCTION()
 	virtual void OnSphereOverlap(
@@ -48,6 +52,9 @@ private:
 
 	// 当前在区域内的角色
 	class ACowBoyCharacter* OverlappingCharacter;
+
+	// 剩余撤离时间
+	float RemainingTime;
 
 
 public:	

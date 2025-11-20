@@ -33,24 +33,61 @@ void AEscapeZone::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		OverlappingCharacter = Character;
 
-		// 开始10秒撤离计时
-		GetWorldTimerManager().SetTimer(LeaveTimerHandle, this, &AEscapeZone::OnEscapeTimerComplete, 10.0f, false);
+		// 获取PlayerController并显示倒计时UI
+		ACowBoyPlayerController* PlayerController = Cast<ACowBoyPlayerController>(OverlappingCharacter->GetController());
+		if (PlayerController)
+		{
+			PlayerController->ShowEscapeCountdown();
+		}
 
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("InEscape,10s"));
+		// 初始化剩余时间并开始重复计时器
+		RemainingTime = 10.0f;
+		GetWorldTimerManager().SetTimer(LeaveTimerHandle, this, &AEscapeZone::UpdateEscapeTimer, 1.0f, true);
+
+		
+	}
+}
+
+void AEscapeZone::UpdateEscapeTimer()
+{
+	if (OverlappingCharacter)
+	{
+		RemainingTime -= 1.0f;
+
+		// 更新HUD显示
+		ACowBoyPlayerController* PlayerController = Cast<ACowBoyPlayerController>(OverlappingCharacter->GetController());
+		if (PlayerController)
+		{
+			PlayerController->SetHUDEscapeCountdown(RemainingTime);
+		}
+
+		// 检查是否计时结束
+		if (RemainingTime <= 0.0f)
+		{
+			OnEscapeTimerComplete();
+		}
 	}
 }
 
 void AEscapeZone::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// 检查离开的是否是当前在区域内的角色
 	ACowBoyCharacter* Character = Cast<ACowBoyCharacter>(OtherActor);
 	if (Character && Character == OverlappingCharacter)
 	{
 		// 取消计时器
 		GetWorldTimerManager().ClearTimer(LeaveTimerHandle);
+
+		// 隐藏倒计时UI
+		ACowBoyPlayerController* PlayerController = Cast<ACowBoyPlayerController>(OverlappingCharacter->GetController());
+		if (PlayerController)
+		{
+			PlayerController->SetHUDEscapeCountdown(10.f);
+			PlayerController->HideEscapeCountdown();
+		}
+
 		OverlappingCharacter = nullptr;
 
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, FString("撤离取消"));
+		
 	}
 }
 
@@ -58,15 +95,17 @@ void AEscapeZone::OnEscapeTimerComplete()
 {
 	if (OverlappingCharacter)
 	{
-		// 获取玩家的PlayerController
 		ACowBoyPlayerController* PlayerController = Cast<ACowBoyPlayerController>(OverlappingCharacter->GetController());
 		if (PlayerController)
 		{
 			PlayerController->SetGameEndHUD();
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString("撤离成功！"));
+			
+			PlayerController->HideEscapeCountdown();
+			
 		}
 
-		// 重置状态
+		// 清理计时器
+		GetWorldTimerManager().ClearTimer(LeaveTimerHandle);
 		OverlappingCharacter = nullptr;
 	}
 }

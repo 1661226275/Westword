@@ -34,22 +34,22 @@ void ACowBoyPlayerController::ClientElimAnnouncement_Implementation(APlayerState
 		{
 			if (Attacker == Self && Victim != Self)
 			{
-				CowboyHUD->AddElimAnnouncement("你", Victim->GetPlayerName());
+				CowboyHUD->AddElimAnnouncement(TEXT("You"), Victim->GetPlayerName());
 				return;
 			}
 			if (Victim == Self && Attacker != Self)
 			{
-				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "you");
+				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "You");
 				return;
 			}
 			if (Attacker == Victim && Attacker == Self)
 			{
-				CowboyHUD->AddElimAnnouncement("你", "你自己");
+				CowboyHUD->AddElimAnnouncement(TEXT("你"), TEXT("你自己"));
 				return;
 			}
 			if (Attacker == Victim && Attacker != Self)
 			{
-				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), "他自己");
+				CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), TEXT("他自己"));
 				return;
 			}
 			CowboyHUD->AddElimAnnouncement(Attacker->GetPlayerName(), Victim->GetPlayerName());
@@ -282,6 +282,17 @@ void ACowBoyPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 	}
 }
 
+void ACowBoyPlayerController::SetHUDEscapeCountdown(float CountdownTime)
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime);
+		FString CountdownText = FString::Printf(TEXT("%d"), Minutes);
+		CowboyHUD->CharacterOverlay->EscapeCountdown->SetText(FText::FromString(CountdownText));
+	}
+}
+
 void ACowBoyPlayerController::SetRangeWeaponHUDVisible(bool bIsVisible)
 {
 	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
@@ -326,6 +337,29 @@ void ACowBoyPlayerController::DestoryCharacterDeBuffHUD()
 	if (CowboyHUD)
 	{
 		CowboyHUD->RemoveCharacterDeBuffWidget();
+	}
+}
+
+// 显示匹配倒计时
+void ACowBoyPlayerController::ShowEscapeCountdown()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay && CowboyHUD->CharacterOverlay->EscapeCountdown)
+	{
+		CowboyHUD->CharacterOverlay->EscapeText->SetVisibility(ESlateVisibility::Visible);
+		CowboyHUD->CharacterOverlay->EscapeCountdown->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+// 隐藏匹配倒计时
+void ACowBoyPlayerController::HideEscapeCountdown()
+{
+	CowboyHUD = CowboyHUD == nullptr ? Cast<ACowBoyHUD>(GetHUD()) : CowboyHUD;
+	if (CowboyHUD && CowboyHUD->CharacterOverlay && CowboyHUD->CharacterOverlay->EscapeCountdown)
+	{
+		
+		CowboyHUD->CharacterOverlay->EscapeText->SetVisibility(ESlateVisibility::Collapsed);
+		CowboyHUD->CharacterOverlay->EscapeCountdown->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 

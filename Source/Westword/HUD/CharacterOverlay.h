@@ -75,6 +75,13 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MatchCountdown;
 
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* EscapeText;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* EscapeCountdown;
+	
+
 	UPROPERTY(meta = (BindWidget))
 	class UImage* HighPingImage;
 

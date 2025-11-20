@@ -159,14 +159,14 @@ void ACowBoyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapWeapon, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(ACowBoyCharacter, OverLapInteractActor, COND_OwnerOnly);
+	DOREPLIFETIME(ACowBoyCharacter, OverLapInteractActor);
 	DOREPLIFETIME(ACowBoyCharacter, WeaponSolts);
 	DOREPLIFETIME(ACowBoyCharacter, Health);
 	DOREPLIFETIME(ACowBoyCharacter, San);
 	DOREPLIFETIME(ACowBoyCharacter, BeastInstinct);
 	DOREPLIFETIME(ACowBoyCharacter, bIsSprinting);
 	DOREPLIFETIME(ACowBoyCharacter, Flag);
-	DOREPLIFETIME(ACowBoyCharacter, bShootHead);
+	
 	
 }
 
@@ -315,7 +315,10 @@ void ACowBoyCharacter::RepNotify_OverLapInteractActor(APickup* LastActor)
 {
 	if (OverLapInteractActor)
 	{
-		OverLapInteractActor->SetInteractWidgetVisibility(true);
+		if (IsLocallyControlled())
+		{
+			OverLapInteractActor->SetInteractWidgetVisibility(true);
+		}
 	}
 	if(LastActor)
 	{
@@ -714,6 +717,11 @@ void ACowBoyCharacter::SetUpNamePlate(const FString& PlayerName)
 	}
 }
 
+void ACowBoyCharacter::SetShootHead_Implementation(bool value)
+{
+	bShootHead = value;
+}
+
 void ACowBoyCharacter::OnRep_San(float LastSan)
 {
 	UpdateHUDSan();
@@ -1053,7 +1061,7 @@ void ACowBoyCharacter::PickUpBottonPressed()
 void ACowBoyCharacter::ServerPickUp_Implementation()
 {
 	
-	
+	if (OverLapWeapon == nullptr)return;
 	Flag = OverLapWeapon;
 	OverLapWeapon->SetOwner(this);
 	OverLapWeapon->PickUp();

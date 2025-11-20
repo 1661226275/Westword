@@ -90,7 +90,8 @@ public:
 
 	void SetUpNamePlate(const FString& PlayerName);
 	void SetNameWidgetVisibility(bool bIsVisible) { if (NameWidget) NameWidget->SetVisibility(bIsVisible); }
-	void SetShootHead(bool value) { bShootHead = value; }
+	UFUNCTION(NetMulticast, Reliable)
+	void SetShootHead(bool value);
 
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnHealthChanged OnHealthChanged;
@@ -347,7 +348,6 @@ private:
 
 	bool bElimmed = false;
 
-	UPROPERTY(Replicated)
 	bool bShootHead = false;
 
 	UPROPERTY(Replicated)

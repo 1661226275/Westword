@@ -7,19 +7,19 @@
 #include "PlayerController/LobbyPlayerController.h"
 void ULobbyWidget::SetBounty(float num)
 {
-	FString BountyText = FString::Printf(TEXT( "ÉÍ½ð£º% d"), FMath::CeilToInt(num));
+	FString BountyText = FString::Printf(TEXT( "%d"), FMath::CeilToInt(num));
 	Bounty->SetText(FText::FromString(BountyText));
 }
 
 void ULobbyWidget::SetCrystalShard(float num)
 {
-	FString CrystalShardText = FString::Printf(TEXT("ÑªÂö½á¾§ËéÆ¬£º% d"), FMath::CeilToInt(num));
+	FString CrystalShardText = FString::Printf(TEXT("%d"), FMath::CeilToInt(num));
 	CrystalShard->SetText(FText::FromString(CrystalShardText));
 }
 
 void ULobbyWidget::SetCrystal(float num)
 {
-	FString CrystalText = FString::Printf(TEXT("ÑªÂö½á¾§ËéÆ¬£º% d"), FMath::CeilToInt(num));
+	FString CrystalText = FString::Printf(TEXT("%d"), FMath::CeilToInt(num));
 	Crystal->SetText(FText::FromString(CrystalText));
 }
 

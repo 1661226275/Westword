@@ -27,6 +27,7 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
+	void SetHUDEscapeCountdown(float CountdownTime);
 	void SetRangeWeaponHUDVisible(bool bIsVisible);
 	void SetMeleeWeaponHUDVisible(bool bIsVisible);
 	void SetCharacterDeBuffHUD();
@@ -34,6 +35,9 @@ public:
 	void SetCharacterHurtHUD();
 	void DestoryCharacterHurtHUD();
 	void AddDamageEffect();
+
+	void ShowEscapeCountdown();
+	void HideEscapeCountdown();
 
 	// 更新队友生命值UI
 	UFUNCTION(Client, Reliable)
