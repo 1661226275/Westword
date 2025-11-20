@@ -22,7 +22,7 @@ void ABeastInstinct::ServerActivateSkill(APawn* Character)
 	//技能释放条件判断
 	if (bIsCooldown)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("Skill is CoolDown"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("Skill is CoolDown"));
 		return;
 	}
 	bIsCooldown = true;
@@ -80,5 +80,5 @@ void ABeastInstinct::SkillEffectFunction(APawn* Character)
 void ABeastInstinct::FinishCooldown()
 {
 	bIsCooldown = false;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("Finish cooldown"));
+	/*GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString("Finish cooldown"));*/
 }

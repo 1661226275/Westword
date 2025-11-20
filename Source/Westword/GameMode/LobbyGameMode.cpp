@@ -17,6 +17,6 @@ void ALobbyGameMode::StartGame()
 	if (World)
 	{
 		bUseSeamlessTravel = true;
-		World->ServerTravel(FString("/Game/Maps/WestWorldMap?listen"));
+		World->ServerTravel(FString("/Game/Maps/WesternDesertTown/Map/WesternDesertTown?listen"));
 	}
 }

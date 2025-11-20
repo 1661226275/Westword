@@ -80,7 +80,7 @@ void AMeleeWeaponBase::MeleeHitChannelTrace()
         TraceChannel,                            // Trace Channel
         false,                                   // bTraceComplex
         ActorsToIgnore,                          // Actors to Ignore
-        EDrawDebugTrace::ForOneFrame,            // Draw Debug Type 
+        EDrawDebugTrace::None,            // Draw Debug Type 
         TraceHitResult,                          // Out Hit Result
         true,                                    // bIgnoreSelf
         FLinearColor::Red,                       // Trace Color
@@ -95,7 +95,7 @@ void AMeleeWeaponBase::MeleeHitChannelTrace()
         if (HitActor)
         {
             // 应用伤害或触发效果
-            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitActor->GetName());
+           /* UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitActor->GetName());*/
             if (HitActor != LastHitActor)
             {
                 if (Cast<APawn>(HitActor))

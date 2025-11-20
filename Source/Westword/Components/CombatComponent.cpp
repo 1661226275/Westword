@@ -284,10 +284,10 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		{
 			TraceHitResult.ImpactPoint = FVector_NetQuantize(End);
 		}
-		if (TraceHitResult.bBlockingHit)
+		/*if (TraceHitResult.bBlockingHit)
 		{
 			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 16.f, 12, FColor::Red, false);
-		}
+		}*/
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
 			
