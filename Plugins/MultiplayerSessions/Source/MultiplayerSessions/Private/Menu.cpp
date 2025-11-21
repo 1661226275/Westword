@@ -51,14 +51,14 @@ bool UMenu::Initialize()
 	{
 		return false;
 	}
-	if (HostButton)
-	{
-		HostButton->OnClicked.AddDynamic(this, &UMenu::HostButtonClicked);
-	}
-	if (JoinButton)
-	{
-		JoinButton->OnClicked.AddDynamic(this, &UMenu::JoinButtonClicked);
-	}
+	//if (HostButton)
+	//{
+	//	HostButton->OnClicked.AddDynamic(this, &UMenu::HostButtonClicked);
+	//}
+	//if (JoinButton)
+	//{
+	//	JoinButton->OnClicked.AddDynamic(this, &UMenu::JoinButtonClicked);
+	//}
 	return true;
 }
 
