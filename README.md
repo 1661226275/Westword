@@ -1,7 +1,9 @@
 # Westword -  腐化边境
 
 一款西部末日PVPVE射击游戏 
+
 开发笔记:https://docs.qq.com/s/z1ln_ZVVLZ9_M1MI6sfI_W
+
 游戏demo:https://pan.baidu.com/s/1OtwJIVyChj_KtMTNkbIRPw?pwd=svse 
 ## 开场白
 
