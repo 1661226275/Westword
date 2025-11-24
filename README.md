@@ -4,7 +4,8 @@
 
 开发笔记:https://docs.qq.com/s/z1ln_ZVVLZ9_M1MI6sfI_W
 
-游戏demo:https://pan.baidu.com/s/1OtwJIVyChj_KtMTNkbIRPw?pwd=svse 
+游戏demo: https://pan.baidu.com/s/1_DnTLIATcnAqrR2Ju_gFvQ?pwd=5nmz 提取码: 5nmz 
+
 ## 开场白
 
 > "我们为黄金而来，却惊醒了那沉睡之物，大地与天空悲鸣不息，月亮泣血不止；自那晚后，世界就变了。天上掉下来的白色结晶，是诅咒…也是恩赐。它们那无声的低语，许诺给你力量，然后扭曲你的意志。
